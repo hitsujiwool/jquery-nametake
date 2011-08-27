@@ -8,6 +8,9 @@
   var params = {
     enableInitialTransition: true
   , ajaxTagName: 'body'
+  , lockDuringTransition: 'false'
+  , changeTitle: 'true'
+  , changeHash: 'true'
   };
 
   var stylesheets = [];
@@ -144,11 +147,15 @@
         if (counter === 0) that.emit('initialize');
       });
       scene.load();
-      scenes[scene.id] = scene;
+      if (scenes[scene.id]) {
+        throw new Error('Scene [' + scene.id + '] already exists!');
+      } else {
+        scenes[scene.id] = scene;
+      }
     });
     EventEmitter.call(this);
     this._scenes = scenes;
-    this.currentScene = location.hash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
+    this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
   };
 
   Manager.prototype = new EventEmitter();
@@ -160,7 +167,7 @@
       , anchor = tmp[1] ? '#' + tmp[1] : undefined
       , scene = this._getScene(sceneId);
     if (!scene) throw new Error('cannot find Scene [' + sceneId + ']');
-    location.hash = '!' + sceneId;
+    if (params.changeHash) location.hash = '!' + sceneId;
     document.title = scene.title || '';
     this._run(this.currentScene, scene, anchor);
     this.currentScene = this._scenes[sceneId];
@@ -192,7 +199,7 @@
   };
 
   Manager.prototype._getScene = function(sceneId) {
-    return this._scenes[sceneId];
+    return this._scenes[sceneId.split('#')[0]];
   };
 
   Manager.prototype._getScenes = function(selector) {
@@ -200,27 +207,28 @@
       , sceneId
       , regExp = RegExp('^' + selector.replace(/\//g, '\/').replace(/\*/g, '.+') + '$')
       , result = [];
-    if (selector === '*') return this.root.children;
     for (sceneId in this._scenes) {
       if (sceneId.match(regExp)) result.push(this._scenes[sceneId]);
     }
     return result;
   };
 
-  Manager.prototype._parseScene = function(elem, callback, parent, prefix) {
+  Manager.prototype._parseScene = function(elem, callback, parent) {
     var i
       , nodes
-      , len;
-    parent = parent || new Scene(this, elem, 'root');
-    prefix = prefix || '/';
+      , len
+      , scene;
+    parent = parent || new Scene(this, elem, '/');
     if (elem.hasChildNodes()) {
       nodes = elem.childNodes;
       for (i = 0, len = nodes.length; i < len; i++) {
-        if (nodes[i].className === 'page') {
-          var scene = new Scene(this, nodes[i], prefix + nodes[i].id);
+        if (nodes[i].className && nodes[i].className.match(/(?:^|\s)page(?:$|\s)/)) {
+          scene = new Scene(this, nodes[i], parent.id + (parent.id === '/' ? '' : '/') + nodes[i].getAttribute('data-page-id'));
           if (typeof callback === 'function') callback(scene);
           scene.parent = parent;
-          parent.addScene(this._parseScene(nodes[i], callback, scene, scene.id + '/'));
+          parent.addScene(this._parseScene(nodes[i], callback, scene));
+        } else {
+          parent = this._parseScene(nodes[i], callback, parent);
         }
       }
     }
@@ -254,7 +262,6 @@
       start._transitions[arrival.id][i](arrival, i === start._transitions[arrival.id].length - 1 ? end : function() { setTimeout(next, 0); });
       i++;
     };
-
     this.emit('transitionstart', start);
     if (start._transitions[arrival.id].length === 0 || start === arrival) {
       this.emit('transitionend', arrival, anchor);

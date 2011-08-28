@@ -86,7 +86,7 @@
         });
     } else {
       this.isReady = true;
-      this.emit('loadcomplete');
+      setTimeout(function() { that.emit('loadcomplete'); }, 0);
     }
   };
 

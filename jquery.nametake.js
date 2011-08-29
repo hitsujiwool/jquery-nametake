@@ -7,7 +7,8 @@
     ajaxTagName: 'body',
     lock: false,
     changeTitle: true,
-    changeHash: true
+    changeHash: true,
+    enablePreloader: true
   };
 
   var stylesheets = [];
@@ -137,6 +138,12 @@
     var that = this
       , scenes = {}
       , counter = 0;
+
+
+    Preloader.init(function(preloader) {
+      setTimeout(function() { that.emit('preinitialize', preloader); });
+    });
+
     this.root = this._parseScene($root.get(0), function(scene) {
       counter++;
       scene.on('loadcomplete', function(scene) {

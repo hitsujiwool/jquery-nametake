@@ -1,16 +1,13 @@
 /*
  *  nametake.js
-` *
+`*
  */
-
 (function($) {
-
   var params = {
-    enableInitialTransition: true
-  , ajaxTagName: 'body'
-  , lockDuringTransition: 'false'
-  , changeTitle: 'true'
-  , changeHash: 'true'
+    ajaxTagName: 'body',
+    lock: false,
+    changeTitle: true,
+    changeHash: true
   };
 
   var stylesheets = [];
@@ -155,6 +152,7 @@
     });
     EventEmitter.call(this);
     this._scenes = scenes;
+    this._isLocked = false;
     this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
   };
 
@@ -166,6 +164,7 @@
       , sceneId = tmp[0]
       , anchor = tmp[1] ? '#' + tmp[1] : undefined
       , scene = this._getScene(sceneId);
+    if (this.isLocked && params.lock) return;
     if (!scene) throw new Error('cannot find Scene [' + sceneId + ']');
     if (params.changeHash) location.hash = '!' + sceneId;
     document.title = scene.title || '';
@@ -252,6 +251,7 @@
       , i = 0;
 
     var end = function() {
+      that.isLocked = false;
       that.emit('transitionend', arrival, anchor);
     };
 
@@ -262,9 +262,10 @@
       start._transitions[arrival.id][i](arrival, i === start._transitions[arrival.id].length - 1 ? end : function() { setTimeout(next, 0); });
       i++;
     };
+    this.isLocked = true;
     this.emit('transitionstart', start);
     if (start._transitions[arrival.id].length === 0 || start === arrival) {
-      this.emit('transitionend', arrival, anchor);
+      end();
     } else {
       next();
     }

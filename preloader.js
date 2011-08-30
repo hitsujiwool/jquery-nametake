@@ -37,12 +37,15 @@
   };
 
   var extractImageFiles = function(elem) {
-    var result = [];
+    var result = []
+      , style
+      , val;
     (function(elem) {
        for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
-         if (getComputedStyle(elem)) {
-           var val = (elem.currentStyle || getComputedStyle(elem)).getPropertyValue('background-image');
-           //if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
+         if (elem.tagName !== undefined) {
+           style = elem.currentStyle || getComputedStyle(elem);
+           val = (style ? style.getPropertyValue('background-image') : null);
+           if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
          }
          if (elem.src !== undefined && elem.tagName === 'IMG') {
            result.push(elem.src);

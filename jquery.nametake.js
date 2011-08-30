@@ -139,25 +139,23 @@
       , scenes = {}
       , counter = 0;
 
+    EventEmitter.call(this);
 
     Preloader.init(function(preloader) {
       setTimeout(function() { that.emit('preinitialize', preloader); });
-    });
-
-    this.root = this._parseScene($root.get(0), function(scene) {
-      counter++;
-      scene.on('loadcomplete', function(scene) {
-        counter--;
-        if (counter === 0) that.emit('initialize');
+      that.root = that._parseScene($root.get(0), function(scene) {
+        scene.on('loadcomplete', function(scene) {
+          preloader.incLoaded();
+        });
+        scene.load();
+        preloader.incTotal();
+        if (scenes[scene.id]) {
+          throw new Error('Scene [' + scene.id + '] already exists!');
+        } else {
+          scenes[scene.id] = scene;
+        }
       });
-      scene.load();
-      if (scenes[scene.id]) {
-        throw new Error('Scene [' + scene.id + '] already exists!');
-      } else {
-        scenes[scene.id] = scene;
-      }
     });
-    EventEmitter.call(this);
     this._scenes = scenes;
     this._isLocked = false;
     this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];

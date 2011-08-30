@@ -11,7 +11,6 @@
     pseudoWait: 2000
   };
 
-  var minWait = 100;
   /*
    * EventEmitter from move.js
    */
@@ -80,7 +79,6 @@
       }
     }, params.progressInterval);
 
-
     for (i = 0, len = files.length; i < len; i++) {
       var image = new Image();
       image.onload = function() {
@@ -111,6 +109,14 @@
     } else {
       return counter / total;
     }
+  };
+
+  Preloader.prototype.incLoaded = function() {
+    counter++;
+  };
+
+  Preloader.prototype.incTotal = function() {
+    total++;
   };
 
   Preloader.init = function(callback, options) {

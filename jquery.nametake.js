@@ -136,22 +136,38 @@
       , counter = 0;
 
     EventEmitter.call(this);
-
-    Preloader.init(function(preloader) {
-      setTimeout(function() { that.emit('preinitialize', preloader); });
+    if (params.enablePreloader) {
+      Preloader.init(function(preloader) {
+        setTimeout(function() { that.emit('preinitialize', preloader); });
+        that.root = that._parseScene($root.get(0), function(scene) {
+          scene.on('loadcomplete', function(scene) {
+            counter++;
+            preloader.incLoaded();
+          });
+          preloader.incTotal();
+          scene.load();
+          if (scenes[scene.id]) {
+            throw new Error('Scene [' + scene.id + '] already exists!');
+          } else {
+            scenes[scene.id] = scene;
+          }
+        });
+      });
+    } else {
       that.root = that._parseScene($root.get(0), function(scene) {
         scene.on('loadcomplete', function(scene) {
-          preloader.incLoaded();
+          counter--;
         });
         scene.load();
-        preloader.incTotal();
+        counter++;
         if (scenes[scene.id]) {
           throw new Error('Scene [' + scene.id + '] already exists!');
         } else {
           scenes[scene.id] = scene;
         }
       });
-    });
+    }
+
     this._scenes = scenes;
     this._isLocked = false;
     this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];

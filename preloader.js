@@ -44,8 +44,8 @@
        for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
          if (elem.tagName !== undefined) {
            style = elem.currentStyle || getComputedStyle(elem);
-           val = (style ? style.getPropertyValue('background-image') : null);
-           if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
+           val = (style ? (style.getPropertyValue ? style.getPropertyValue('background-image') : style.backgroundImage) : null);
+           //if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
          }
          if (elem.src !== undefined && elem.tagName === 'IMG') {
            result.push(elem.src);
@@ -84,12 +84,15 @@
 
     for (i = 0, len = files.length; i < len; i++) {
       var image = new Image();
+      //IE7以下だとonloadが非同期で動かない？？
       image.onload = function() {
-        counter++;
-        if (total === counter && !nowWaiting) {
-          clearTimeout(progressLoop);
-          that.emit('complete');
-        }
+        setTimeout(function() {
+          counter++;
+          if (total === counter && !nowWaiting) {
+            clearTimeout(progressLoop);
+            that.emit('complete');
+          }
+        }, 0);
       };
       image.src = files[i];
       //document.body.appendChild(image);

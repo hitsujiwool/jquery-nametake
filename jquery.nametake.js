@@ -46,8 +46,7 @@
     this.id = id;
     this.isReady = false;
     this._transitions = {};
-    this._start = [];
-    this._end = [];
+    this._ends = [];
   };
   Scene.prototype = new EventEmitter();
 
@@ -126,11 +125,8 @@
     return this;
   };
 
-  Scene.prototype.start = function() {
-    return this;
-  };
-
-  Scene.prototype.end = function() {
+  Scene.prototype.end = function(callback) {
+    this._ends.push(callback);
     return this;
   };
 
@@ -257,6 +253,7 @@
 
     var end = function() {
       that.isLocked = false;
+      if (start._ends[0]) start._ends[0](arrival);
       that.emit('transitionend', arrival, anchor);
     };
 

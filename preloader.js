@@ -8,7 +8,7 @@
 
   var params = {
     progressInterval: 50,
-    pseudoWait: 2000
+    pseudoWait: 1000
   };
 
   /*
@@ -99,6 +99,7 @@
           counter++;
           if (total === counter && !nowWaiting) {
             clearTimeout(progressLoop);
+            that.emit('progress');
             that.emit('complete');
           }
         }, 0);
@@ -108,6 +109,7 @@
           counter++;
           if (total === counter && !nowWaiting) {
             clearTimeout(progressLoop);
+            that.emit('progress');
             that.emit('complete');
           }
         }, 0);
@@ -126,7 +128,7 @@
   };
 
   Preloader.prototype.getProportion = function(pseudo) {
-    pseudo = pseudo || true;
+    if (pseudo === undefined) pseudo = true;
     if (pseudo) {
       return Math.min((pseudoCounter + 1) * params.progressInterval / params.pseudoWait, counter / total);
     } else {

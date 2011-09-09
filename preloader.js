@@ -41,18 +41,29 @@
       , style
       , val;
     (function(elem) {
-       for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
-         if (elem.tagName !== undefined) {
-           style = elem.currentStyle || getComputedStyle(elem);
-           val = (style ? (style.getPropertyValue ? style.getPropertyValue('background-image') : style.backgroundImage) : null);
-           //if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
-         }
-         if (elem.src !== undefined && elem.tagName === 'IMG') {
-           result.push(elem.src);
-         }
-         arguments.callee(elem);
-       }
+      var nodes
+        , node
+        , i
+        , len;
+      if (elem.hasChildNodes()) {
+        nodes = elem.childNodes;
+        for (i = 0, len = nodes.length; i < len; i++) {
+          node = nodes[i];
+          if (node.nodeType === 1) {
+            if (node.tagName !== undefined) {
+              style = node.currentStyle || getComputedStyle(node, '');
+              val = (style ? (style.getPropertyValue ? style.getPropertyValue('background-image') : style.backgroundImage) : null);
+              //if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
+            }
+            if (node.src !== undefined && node.tagName === 'IMG') {
+              result.push(node.src);
+            }
+            arguments.callee(node);
+          }
+        }
+      }
     })(elem);
+    console.log(result);
     return result;
   };
 
@@ -63,13 +74,12 @@
       , progressLoop;
 
     EventEmitter.call(this);
-    files = extractImageFiles(document);
+    files = extractImageFiles(document.getElementById('wrapper'));
     if (files.length === 0) {
       setTimeout(function() { that.emit('complete'); }, 0);
       return;
     }
     total = files.length;
-
     progressLoop = setInterval(function() {
       pseudoCounter++;
       that.emit('progress');

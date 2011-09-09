@@ -63,7 +63,6 @@
         }
       }
     })(elem);
-    console.log(result);
     return result;
   };
 
@@ -104,8 +103,16 @@
           }
         }, 0);
       };
+      image.onerror = function() {
+        setTimeout(function() {
+          counter++;
+          if (total === counter && !nowWaiting) {
+            clearTimeout(progressLoop);
+            that.emit('complete');
+          }
+        }, 0);
+      };
       image.src = files[i];
-      //document.body.appendChild(image);
     }
   };
   Preloader.prototype = new EventEmitter();

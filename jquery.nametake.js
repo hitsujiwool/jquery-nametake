@@ -221,10 +221,10 @@
   Manager.prototype._getScenes = function(selector) {
     var tmp
       , sceneId
-      , regExp = RegExp('^' + selector.replace(/\//g, '\/').replace(/\*/g, '.+') + '$')
+      , regExp = RegExp('^' + selector.replace(/\*/g, '[^/]+') + '$')
       , result = [];
     for (sceneId in this._scenes) {
-      if (sceneId.match(regExp)) result.push(this._scenes[sceneId]);
+      if (sceneId.match(regExp) || selector === '*') result.push(this._scenes[sceneId]);
     }
     return result;
   };
@@ -266,7 +266,6 @@
   Manager.prototype._run = function(start, arrival, anchor) {
     var that = this
       , i = 0;
-
     var end = function() {
       that.isLocked = false;
       if (start._ends[0]) start._ends[0](arrival);
@@ -282,7 +281,7 @@
     };
     this.isLocked = true;
     this.emit('transitionstart', start);
-    if (start._transitions[arrival.id].length === 0 || start === arrival) {
+    if (start._transitions[arrival.id] === undefined || start._transitions[arrival.id].length === 0 || start === arrival) {
       end();
     } else {
       next();

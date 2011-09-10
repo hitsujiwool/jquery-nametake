@@ -73,7 +73,7 @@
       , progressLoop;
 
     EventEmitter.call(this);
-    files = extractImageFiles(document.getElementById('wrapper'));
+    files = extractImageFiles(document.body);
     if (files.length === 0) {
       setTimeout(function() { that.emit('complete'); }, 0);
       return;

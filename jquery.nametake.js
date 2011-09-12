@@ -176,8 +176,9 @@
   Manager.prototype = new EventEmitter();
   Manager.prototype.constructor = Manager;
 
-  Manager.prototype.moveTo = function(target) {
-    var tmp = target.split('#')
+  Manager.prototype.moveTo = function(target, skipTransition) {
+    var that = this
+      , tmp = target.split('#')
       , sceneId = tmp[0]
       , anchor = tmp[1] ? '#' + tmp[1] : undefined
       , scene = this._getScene(sceneId);
@@ -185,7 +186,17 @@
     if (!scene) throw new Error('cannot find Scene [' + sceneId + ']');
     if (params.changeHash) location.hash = '!' + sceneId;
     document.title = scene.title || '';
-    this._run(this.currentScene, scene, anchor);
+    //TODO: きたないのであとでなおす
+    if (skipTransition) {
+      setTimeout(function() {
+        that.emit('transitionstart', that.currentScene);
+      }, 0);
+      setTimeout(function() {
+        that.emit('transitionend', scene, anchor);
+      }, 0);
+    } else {
+      this._run(this.currentScene, scene, anchor);
+    }
     this.currentScene = this._scenes[sceneId];
   };
 

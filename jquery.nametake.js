@@ -46,6 +46,7 @@
     this.id = id;
     this.isReady = false;
     this._transitions = {};
+    this._starts = [];
     this._ends = [];
   };
   Scene.prototype = new EventEmitter();
@@ -95,6 +96,14 @@
     return this.children.indexOf(scene);
   };
 
+  Scene.prototype.isDescendantOf = function(scene) {
+    return this.id.indexOf(scene instanceof Scene ? scene.id : scene) === 0;
+  };
+
+  Scene.prototype.isSiblingOf = function(scene) {
+    return this.parent.indexOf(scene) > -1;
+  };
+
   Scene.prototype.hasPrev = function() {
     return this.parent.indexOf(this) - 1 >= 0;
   };
@@ -111,6 +120,16 @@
     return this.parent.children[this.parent.indexOf(this) + 1];
   };
 
+  Scene.prototype.start = function(callback) {
+    this._starts.push(callback);
+    return this;
+  };
+
+  Scene.prototype.end = function(callback) {
+    this._ends.push(callback);
+    return this;
+  };
+
   Scene.prototype.from = function(selector, callback) {
     return this;
   };
@@ -125,11 +144,6 @@
     return this;
   };
 
-  Scene.prototype.end = function(callback) {
-    this._ends.push(callback);
-    return this;
-  };
-
   var Manager = function($root, options) {
     var that = this
       , scenes = {}
@@ -138,10 +152,14 @@
     EventEmitter.call(this);
     if (params.enablePreloader) {
       Preloader.init(function(preloader) {
-        setTimeout(function() { that.emit('preinitialize', preloader); });
+        setTimeout(function() {
+          that.emit('preinitialize', preloader);
+          preloader.on('complete', function() {
+            that.emit('initialize');
+          });
+        }, 0);
         that.root = that._parseScene($root.get(0), function(scene) {
           scene.on('loadcomplete', function(scene) {
-            counter++;
             preloader.incLoaded();
           });
           preloader.incTotal();
@@ -157,6 +175,9 @@
       that.root = that._parseScene($root.get(0), function(scene) {
         scene.on('loadcomplete', function(scene) {
           counter--;
+          if (counter === 0) {
+            that.emit('initialize');
+          }
         });
         scene.load();
         counter++;
@@ -168,8 +189,14 @@
       });
     }
 
+    $('a').live('click', function(e) {
+      if (this.href.indexOf('#!') > 0) {
+        that.moveTo(this.href.split('#!')[1]);
+      }
+    });
+
     this._scenes = scenes;
-    this._isLocked = false;
+    this.isLocked = false;
     this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
   };
 
@@ -195,8 +222,9 @@
         that.emit('transitionend', scene, anchor);
       }, 0);
     } else {
-      this._run(this.currentScene, scene, anchor);
+      this._fire(this.currentScene, scene, anchor);
     }
+    this._route(this.currentScene, scene);
     this.currentScene = this._scenes[sceneId];
   };
 
@@ -274,28 +302,88 @@
     return res;
   };
 
-  Manager.prototype._run = function(start, arrival, anchor) {
+  Manager.prototype._route = function(from, to) {
+    //console.log(from.id + ' -> ' + to.id);
     var that = this
-      , i = 0;
-    var end = function() {
-      that.isLocked = false;
-      if (start._ends[0]) start._ends[0](arrival);
-      that.emit('transitionend', arrival, anchor);
-    };
-
-    var next = function(err) {
-      if (err instanceof Error) {
-        throw err;
+      , scene
+      , result = [];
+    var route = (function(from, to) {
+      var sceneId
+        , route = [];
+      if (to === from) {
+        return [from];
+      } else if (to.isDescendantOf(from)) {
+        sceneId = to.id;
+        while (sceneId !== from.id) {
+          route.unshift(that._getScene(sceneId));
+          sceneId = sceneId.slice(0, sceneId.lastIndexOf('/')) || '/';
+        }
+        route.unshift(from);
+        return route;
+      } else if (to.isSiblingOf(from)) {
+        return [from, to];
+      } else {
+        return [from].concat(arguments.callee(from.parent, to));
       }
-      start._transitions[arrival.id][i](arrival, i === start._transitions[arrival.id].length - 1 ? end : function() { setTimeout(next, 0); });
+    })(from, to);
+    while (scene = route.shift()) {
+      result.push(scene);
+      if (route[1] && scene.isSiblingOf(route[1])) {
+        route.shift();
+      }
+    }
+    return result;
+  };
+
+  Manager.prototype._fire = function(from, to, anchor) {
+    var that = this
+      , i = 0
+      , route = this._route(from, to);
+    //console.log(route.map(function(i) { return i.id; }).join(' -> '));
+
+    var next = function() {
+      that._run(route[i], route[i + 1], i < route.length - 2 ? next : end);
       i++;
     };
-    this.isLocked = true;
-    this.emit('transitionstart', start);
-    if (start._transitions[arrival.id] === undefined || start._transitions[arrival.id].length === 0 || start === arrival) {
-      end();
+
+    var tickEnd = function() {
+      setTimeout(function() {
+        that.isLocked = false;
+        that.emit('transitionend', to, anchor);
+      }, 0);
+    };
+
+    var end = function() {
+      to._ends.length > 0 ? to._ends[0](tickEnd) : tickEnd();
+    };
+
+    if (route.length >= 2) {
+      this.isLocked = true;
+      this.emit('transitionstart', from);
+      from._starts.length > 0 ? from._starts[0](next) : next();
+    }
+  };
+
+  Manager.prototype._run = function(from, to, end) {
+    var tickEnd = function() { setTimeout(end, 0); };
+
+    var that = this
+      , i = 0
+      , transitions = from._transitions[to.id];
+
+    var tickNext = function(err) {
+      setTimeout(function() {
+        if (err instanceof Error) {
+          throw err;
+        }
+        transitions[i](to, i < transitions.length - 1 ? tickNext : tickEnd);
+        i++;
+      }, 0);
+    };
+    if (!transitions) {
+      tickEnd();
     } else {
-      next();
+      tickNext();
     }
   };
 
@@ -303,5 +391,6 @@
     params = $.extend(params, options);
     return new Manager(this);
   };
+
 
 }(jQuery));

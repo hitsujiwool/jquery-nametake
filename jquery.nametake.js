@@ -110,7 +110,7 @@ if (!Array.prototype.indexOf) {
   };
 
   Scene.prototype.isDescendantOf = function(scene) {
-    return this.id.indexOf(scene instanceof Scene ? scene.id : scene) === 0;
+    return this.id.indexOf(scene instanceof Scene ? scene.id + '/' : scene) === 0;
   };
 
   Scene.prototype.isSiblingOf = function(scene) {
@@ -203,7 +203,7 @@ if (!Array.prototype.indexOf) {
     }
 
     $('a').live('click', function(e) {
-      if (this.href.indexOf('#!') > 0) {
+      if (this.href.indexOf('#!') > -1) {
         e.preventDefault();
         that.moveTo(this.href.split('#!')[1]);
       }
@@ -238,7 +238,6 @@ if (!Array.prototype.indexOf) {
     } else {
       this._fire(this.currentScene, scene, anchor);
     }
-    this._route(this.currentScene, scene);
     this.currentScene = this._scenes[sceneId];
   };
 
@@ -317,29 +316,29 @@ if (!Array.prototype.indexOf) {
   };
 
   Manager.prototype._route = function(from, to) {
-    //console.log(from.id + ' -> ' + to.id);
     var that = this
       , scene
       , result = [];
     var route = (function(from, to) {
       var sceneId
-        , route = [];
+        , tmp = [];
       if (to === from) {
         return [from];
       } else if (to.isDescendantOf(from)) {
         sceneId = to.id;
         while (sceneId !== from.id) {
-          route.unshift(that._getScene(sceneId));
+          tmp.unshift(that._getScene(sceneId));
           sceneId = sceneId.slice(0, sceneId.lastIndexOf('/')) || '/';
         }
         route.unshift(from);
-        return route;
+        return tmp;
       } else if (to.isSiblingOf(from)) {
         return [from, to];
       } else {
         return [from].concat(arguments.callee(from.parent, to));
       }
     })(from, to);
+
     while (scene = route.shift()) {
       result.push(scene);
       if (route[1] && scene.isSiblingOf(route[1])) {
@@ -353,7 +352,6 @@ if (!Array.prototype.indexOf) {
     var that = this
       , i = 0
       , route = this._route(from, to);
-    //console.log(route.map(function(i) { return i.id; }).join(' -> '));
 
     var next = function() {
       that._run(route[i], route[i + 1], i < route.length - 2 ? next : end);

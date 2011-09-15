@@ -2,6 +2,17 @@
  *  nametake.js
 `*
  */
+if (!Array.prototype.indexOf) {
+  Array.prototype.indexOf = function(target) {
+    for (var i = 0; i < this.length; i++) {
+      if (this[i] === target) {
+        return i;
+      }
+    }
+    return -1;
+  };
+}
+
 (function($) {
   var params = {
     ajaxTagName: 'body',
@@ -60,7 +71,7 @@
     var that = this
       , url = this.element.getAttribute('data-page-url');
     if (url) {
-      $.ajax({url : url, dataType: 'html'})
+      $.ajax({url : url, dataType: 'html', cache: false})
         .success(function(data) {
           var $data = $(data)
             , $head = $('head');
@@ -78,7 +89,9 @@
              }
           });
           that.isReady = true;
-          that.emit('loadcomplete');
+          //IE6だと非同期で呼ばれていなかったので、setTimeoutでwrap
+          setTimeout(function() { that.emit('loadcomplete'); }, 0);
+          //this.emit('loadcomplete');
         })
         .error(function(data) {
         });
@@ -173,7 +186,7 @@
       });
     } else {
       that.root = that._parseScene($root.get(0), function(scene) {
-        scene.on('loadcomplete', function(scene) {
+        scene.on('loadcomplete', function() {
           counter--;
           if (counter === 0) {
             that.emit('initialize');
@@ -190,6 +203,7 @@
     }
 
     $('a').live('click', function(e) {
+      e.preventDefault();
       if (this.href.indexOf('#!') > 0) {
         that.moveTo(this.href.split('#!')[1]);
       }

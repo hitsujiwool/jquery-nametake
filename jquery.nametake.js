@@ -203,8 +203,8 @@ if (!Array.prototype.indexOf) {
     }
 
     $('a').live('click', function(e) {
-      e.preventDefault();
       if (this.href.indexOf('#!') > 0) {
+        e.preventDefault();
         that.moveTo(this.href.split('#!')[1]);
       }
     });

@@ -167,9 +167,6 @@ if (!Array.prototype.indexOf) {
       Preloader.init(function(preloader) {
         setTimeout(function() {
           that.emit('preinitialize', preloader);
-          preloader.on('complete', function() {
-            that.emit('initialize');
-          });
         }, 0);
         that.root = that._parseScene($root.get(0), function(scene) {
           scene.on('loadcomplete', function(scene) {
@@ -216,6 +213,12 @@ if (!Array.prototype.indexOf) {
 
   Manager.prototype = new EventEmitter();
   Manager.prototype.constructor = Manager;
+
+  Manager.prototype.initialize = function() {
+    var that = this;
+    setTimeout(function() { that.emit('initialize'); }, 0);
+    //this.emit('initialize');
+  };
 
   Manager.prototype.moveTo = function(target, skipTransition) {
     var that = this

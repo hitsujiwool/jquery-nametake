@@ -206,6 +206,10 @@ if (!Array.prototype.indexOf) {
       }
     });
 
+    $(window).bind('hashchange', function(e) {
+      that._moveTo(that._getScene(location.hash.slice(2)));
+    });
+
     this._scenes = scenes;
     this.isLocked = false;
     this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
@@ -228,7 +232,15 @@ if (!Array.prototype.indexOf) {
       , scene = this._getScene(sceneId);
     if (this.isLocked && params.lock) return;
     if (!scene) throw new Error('cannot find Scene [' + sceneId + ']');
-    if (params.changeHash) location.hash = '!' + sceneId;
+    if (params.changeHash) {
+      location.hash = '!' + sceneId;
+    } else {
+      this._moveTo(scene, anchor, skipTransition);
+    }
+  };
+
+  Manager.prototype._moveTo = function(scene, anchor, skipTransition) {
+    var that = this;
     document.title = scene.title || '';
     //TODO: きたないのであとでなおす
     if (skipTransition) {
@@ -241,7 +253,7 @@ if (!Array.prototype.indexOf) {
     } else {
       this._fire(this.currentScene, scene, anchor);
     }
-    this.currentScene = this._scenes[sceneId];
+    this.currentScene = this._scenes[scene.id];
   };
 
   Manager.prototype.moveToPrev = function() {
@@ -406,6 +418,5 @@ if (!Array.prototype.indexOf) {
     params = $.extend(params, options);
     return new Manager(this);
   };
-
 
 }(jQuery));

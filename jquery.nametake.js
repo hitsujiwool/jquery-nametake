@@ -349,7 +349,7 @@ if (!Array.prototype.indexOf) {
           tmp.unshift(that._getScene(sceneId));
           sceneId = sceneId.slice(0, sceneId.lastIndexOf('/')) || '/';
         }
-        route.unshift(from);
+        tmp.unshift(from);
         return tmp;
       } else if (to.isSiblingOf(from)) {
         return [from, to];

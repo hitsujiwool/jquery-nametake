@@ -207,7 +207,11 @@ if (!Array.prototype.indexOf) {
     });
 
     $(window).bind('hashchange', function(e) {
-      that._moveTo(that._getScene(location.hash.slice(2)));
+      if (location.hash.indexOf('#!') > -1) {
+        that._moveTo(that._getScene(location.hash.slice(2)));
+      } else {
+        e.preventDefault();
+      }
     });
 
     this._scenes = scenes;

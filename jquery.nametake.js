@@ -217,6 +217,7 @@ if (!Array.prototype.indexOf) {
     this._scenes = scenes;
     this.isLocked = false;
     this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
+    //this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root;
   };
 
   Manager.prototype = new EventEmitter();

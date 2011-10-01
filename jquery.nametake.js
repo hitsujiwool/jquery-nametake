@@ -110,7 +110,7 @@ if (!Array.prototype.indexOf) {
   };
 
   Scene.prototype.isDescendantOf = function(scene) {
-    return this.id.indexOf(scene instanceof Scene ? scene.id + '/' : scene) === 0;
+    return this.id.indexOf(scene instanceof Scene ? (scene.id === '/' ? '/' : scene.id + '/') : scene) === 0;
   };
 
   Scene.prototype.isSiblingOf = function(scene) {

@@ -1,10 +1,10 @@
-/*
- *  nametake.js
-`*
+/**
+`* nametake.js
  */
 if (!Array.prototype.indexOf) {
   Array.prototype.indexOf = function(target) {
-    for (var i = 0; i < this.length; i++) {
+    var i;
+    for (i = 0; i < this.length; i++) {
       if (this[i] === target) {
         return i;
       }
@@ -13,7 +13,37 @@ if (!Array.prototype.indexOf) {
   };
 }
 
+var nametake = nametake || {};
+
+nametake.utils = {
+  inject: function(array, initial, callback) {
+    var i,
+        len;
+    for (i = 0, len = array.length; i < len; i++) {
+      initial = callback(initial, array[i]);
+    }
+    return initial;
+  },
+  runQueue: function(queue, callback) {
+    var i = 0,
+        len = queue.length,
+        args = Array.prototype.slice.call(arguments, 2);    
+    var next = function() {
+      nametake.utils.nextTick(function() {
+        queue[i].apply(null, args.concat([i < len - 1 ? next : callback]));
+        i++;
+      });
+    };
+    queue.length > 0 ? next() : nametake.utils.nextTick(callback);
+  },
+  nextTick: function(callback) {
+    setTimeout(callback, 0);
+  }
+};
+
 (function($) {
+  var utils = nametake.utils;
+
   var params = {
     ajaxTagName: 'body',
     lock: false,
@@ -24,8 +54,9 @@ if (!Array.prototype.indexOf) {
 
   var stylesheets = [];
 
-  /*
-   * EventEmitter from move.js
+  /**
+   * EventEmitter Pattern from move.js written by visionmedia
+   * https://github.com/visionmedia/move.js/blob/master/move.js
    */
   var EventEmitter = function() {
     this.callbacks = {};
@@ -37,9 +68,9 @@ if (!Array.prototype.indexOf) {
   };
 
   EventEmitter.prototype.emit = function(event) {
-    var args = Array.prototype.slice.call(arguments, 1)
-      , callbacks = this.callbacks[event]
-      , len;
+    var args = Array.prototype.slice.call(arguments, 1),
+        callbacks = this.callbacks[event],
+        len;
     if (callbacks) {
       len = callbacks.length;
       for (var i = 0; i < len; ++i) {
@@ -89,15 +120,14 @@ if (!Array.prototype.indexOf) {
              }
           });
           that.isReady = true;
-          //IE6だと非同期で呼ばれていなかったので、setTimeoutでwrap
-          setTimeout(function() { that.emit('loadcomplete'); }, 0);
-          //this.emit('loadcomplete');
+          //IE6だと非同期で呼ばれていなかったので、nextTickを挟む
+          utils.nextTick(function() { that.emit('loadcomplete'); });
         })
         .error(function(data) {
         });
     } else {
       this.isReady = true;
-      setTimeout(function() { that.emit('loadcomplete'); }, 0);
+      utils.nextTick(function() { that.emit('loadcomplete'); });
     }
   };
 
@@ -114,7 +144,7 @@ if (!Array.prototype.indexOf) {
   };
 
   Scene.prototype.isSiblingOf = function(scene) {
-    return this.parent.indexOf(scene) > -1;
+    return this.parent.indexOf(scene) > -1 && this !== scene;
   };
 
   Scene.prototype.hasPrev = function() {
@@ -143,31 +173,34 @@ if (!Array.prototype.indexOf) {
     return this;
   };
 
-  Scene.prototype.from = function(selector, callback) {
+  Scene.prototype.toChild = function(callback) {
+    var that = this;
+    $.each(this.children, function(i, scene) {
+      (that._transitions[scene.id] = that._transitions[scene.id] || []).push(callback);
+    });
     return this;
   };
 
-  Scene.prototype.to = function(selector) {
-    var i
-      , len
-      , scenes = this.manager._getScenes(selector);
-    for (i = 0, len = scenes.length; i < len; i++) {
-      Array.prototype.push.apply(this._transitions[scenes[i].id] = this._transitions[scenes[i].id] || [], Array.prototype.slice.call(arguments, 1));
-    }
+  Scene.prototype.toParent = function(callback) {
+    (this._transitions[this.parent.id] = this._transitions[this.parent.id] || []).push(callback);
     return this;
+  };
+
+  Scene.prototype.toSibling = function(callback) {
+    var that = this;
+    $.each(this.manager._getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
+      (that._transitions[scene.id] = that._transitions[scene.id] || []).push(callback);     
+    });
   };
 
   var Manager = function($root, options) {
     var that = this
       , scenes = {}
       , counter = 0;
-
     EventEmitter.call(this);
     if (params.enablePreloader) {
       Preloader.init(function(preloader) {
-        setTimeout(function() {
-          that.emit('preinitialize', preloader);
-        }, 0);
+        utils.nextTick(function() { that.emit('preinitialize', preloader); });
         that.root = that._parseScene($root.get(0), function(scene) {
           scene.on('loadcomplete', function(scene) {
             preloader.incLoaded();
@@ -216,8 +249,7 @@ if (!Array.prototype.indexOf) {
 
     this._scenes = scenes;
     this.isLocked = false;
-    this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root.children[0];
-    //this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root;
+    this.currentScene = location.hash && params.changeHash ? this._getScene(location.hash.split('#!')[1].split('#')[0]) : this.root;
   };
 
   Manager.prototype = new EventEmitter();
@@ -225,40 +257,33 @@ if (!Array.prototype.indexOf) {
 
   Manager.prototype.initialize = function() {
     var that = this;
-    setTimeout(function() { that.emit('initialize'); }, 0);
-    //this.emit('initialize');
+    utils.nextTick(function() { that.emit('initialize'); });
   };
 
   Manager.prototype.moveTo = function(target, skipTransition) {
-    var that = this
-      , tmp = target.split('#')
-      , sceneId = tmp[0]
-      , anchor = tmp[1] ? '#' + tmp[1] : undefined
-      , scene = this._getScene(sceneId);
+    var that = this,
+        tmp = target.split('#'),
+        sceneId = tmp[0],
+        scene = this._getScene(sceneId);
+    if (this.currentScene === scene) return;
     if (this.isLocked && params.lock) return;
-    if (!scene) throw new Error('cannot find Scene [' + sceneId + ']');
     if (params.changeHash) {
       location.hash = '!' + sceneId;
     } else {
-      this._moveTo(scene, anchor, skipTransition);
+      this._moveTo(scene, skipTransition);
     }
   };
 
-  Manager.prototype._moveTo = function(scene, anchor, skipTransition) {
+  Manager.prototype._moveTo = function(to, skipTransition) {
     var that = this;
-    document.title = scene.title || '';
-    //TODO: きたないのであとでなおす
+    document.title = to.title || '';
     if (skipTransition) {
-      setTimeout(function() {
-        that.emit('transitionstart', that.currentScene);
-      }, 0);
-      setTimeout(function() {
-        that.emit('transitionend', scene, anchor);
-      }, 0);
+      utils.nextTick(function() { that.emit('transitionstart', that.currentScene); }, 0);
+      utils.nextTick(function() { that.emit('transitionend', to); }, 0);
     } else {
-      this._fire(this.currentScene, scene, anchor);
+      this._run(this.currentScene, to);
     }
-    this.currentScene = this._scenes[scene.id];
+    this.currentScene = this._scenes[to.id];
   };
 
   Manager.prototype.moveToPrev = function() {
@@ -277,27 +302,33 @@ if (!Array.prototype.indexOf) {
     this._transitions = Array.prototype.slice.call(arguments, 0);
   };
 
-  Manager.prototype.of = function(selector, callback) {
-    var i
-      , len
-      , scenes = this._getScenes(selector);
-    for (i = 0, len = scenes.length; i < len; i++) {
-      callback(scenes[i]);
+  Manager.prototype.of = function(filter, callback) {
+    if (typeof filter === 'string') {
+      callback(this._getScene(filter));
+    } else if (filter instanceof RegExp) {
+      $.each(this._getScenes(filter), function(i, scene) {
+        callback(scene);
+      });
     }
   };
 
   Manager.prototype._getScene = function(sceneId) {
-    return this._scenes[sceneId.split('#')[0]];
+    var scene = this._scenes[sceneId];
+    if (!scene) throw new Error('cannot find Scene [' + sceneId + ']');
+    return scene;
   };
 
-  Manager.prototype._getScenes = function(selector) {
-    var tmp
-      , sceneId
-      , regExp = RegExp('^' + selector.replace(/\*/g, '[^/]+') + '$')
-      , result = [];
-    for (sceneId in this._scenes) {
-      if (sceneId.match(regExp) || selector === '*') result.push(this._scenes[sceneId]);
-    }
+  Manager.prototype._getScenes = function(filter) {
+    var result = [];
+    $.each(this._scenes, function(id, scene) {
+      if (filter === null) {
+        result.push(scene);
+      } else if (filter instanceof RegExp && filter.test) {
+        result.push(scene);        
+      } else if (typeof filter === 'function' && filter(scene)) {
+        result.push(scene);
+      }
+    });
     return result;
   };
 
@@ -310,8 +341,8 @@ if (!Array.prototype.indexOf) {
     if (elem.hasChildNodes()) {
       nodes = elem.childNodes;
       for (i = 0, len = nodes.length; i < len; i++) {
-        if (nodes[i].className && nodes[i].className.match(/(?:^|\s)page(?:$|\s)/)) {
-          scene = new Scene(this, nodes[i], parent.id + (parent.id === '/' ? '' : '/') + nodes[i].getAttribute('data-page-id'));
+        if (nodes[i].nodeType === 1 && nodes[i].getAttribute('data-nametake-id')) {
+          scene = new Scene(this, nodes[i], parent.id + (parent.id === '/' ? '' : '/') + nodes[i].getAttribute('data-nametake-id'));
           if (typeof callback === 'function') callback(scene);
           scene.parent = parent;
           parent.addScene(this._parseScene(nodes[i], callback, scene));
@@ -323,25 +354,13 @@ if (!Array.prototype.indexOf) {
     return parent;
   };
 
-  Manager.prototype.addressOf = function(scene) {
-    //TODO: ここは適当なので直す！
-    var res, i, len;
-    for (i = 0, len = this.root.children.length; i < len; i++) {
-      if (this.root.children[i] === scene) {
-        res = i;
-        break;
-      }
-    }
-    return res;
-  };
-
   Manager.prototype._route = function(from, to) {
-    var that = this
-      , scene
-      , result = [];
+    var that = this,
+        scene,
+        result = [];
     var route = (function(from, to) {
-      var sceneId
-        , tmp = [];
+      var sceneId,
+          tmp = [];
       if (to === from) {
         return [from];
       } else if (to.isDescendantOf(from)) {
@@ -359,69 +378,55 @@ if (!Array.prototype.indexOf) {
       }
     })(from, to);
 
-    while (scene = route.shift()) {
+    scene = route.shift();
+    while (scene) {      
       result.push(scene);
       if (route[1] && scene.isSiblingOf(route[1])) {
         route.shift();
       }
+      scene = route.shift();
     }
     return result;
   };
 
-  Manager.prototype._fire = function(from, to, anchor) {
-    var that = this
-      , i = 0
-      , route = this._route(from, to);
+  Manager.prototype._run = function(from, to, skipTransition) {
+    var that = this,
+        i = 0,
+        route = this._route(from, to);
 
     var next = function() {
-      that._run(route[i], route[i + 1], i < route.length - 2 ? next : end);
+      that._fire(route[i], route[i + 1], i < route.length - 2 ? next : end);
       i++;
     };
 
-    var tickEnd = function() {
-      setTimeout(function() {
-        that.isLocked = false;
-        that.emit('transitionend', to, anchor);
-      }, 0);
-    };
-
     var end = function() {
-      to._ends.length > 0 ? to._ends[0](tickEnd) : tickEnd();
+      utils.runQueue(to._ends, function() {
+        that.isLocked = false;
+        that.emit('transitionend', to);
+      });
     };
 
     if (route.length >= 2) {
       this.isLocked = true;
       this.emit('transitionstart', from);
-      from._starts.length > 0 ? from._starts[0](next) : next();
+      utils.runQueue(from._starts, next);
     }
   };
 
-  Manager.prototype._run = function(from, to, end) {
-    var tickEnd = function() { setTimeout(end, 0); };
-
+  Manager.prototype._fire = function(from, to, end) {
     var that = this
       , i = 0
       , transitions = from._transitions[to.id];
 
-    var tickNext = function(err) {
-      setTimeout(function() {
-        if (err instanceof Error) {
-          throw err;
-        }
-        transitions[i](to, i < transitions.length - 1 ? tickNext : tickEnd);
-        i++;
-      }, 0);
-    };
-    if (!transitions) {
-      tickEnd();
+    if (transitions === undefined) {
+      utils.nextTick(end);
     } else {
-      tickNext();
+      utils.runQueue(transitions, end, to);
     }
   };
 
-  $.fn.nametake = function(options) {
+  $.nametake = function(context, options) {
     params = $.extend(params, options);
-    return new Manager(this);
+    return new Manager($(context));
   };
-
 }(jQuery));

@@ -1,0 +1,47 @@
+* {
+  margin: 0;
+  padding: 0;
+  border: none;
+  list-style-type: none;
+  list-style-position: inside;
+}
+
+html {
+}
+
+#map ul {
+  clear: both;
+}
+
+#map li {
+  padding: 10px 0;
+  float: left;
+}
+
+
+#map a, #map span {
+  padding: 10px 30px;
+  background-color: #DDDDDD;
+}
+
+.pages {
+  clear: both;
+  width: 600px;
+  height: 400px;
+  overflow: hidden;
+  background-color: #EEEEEE;
+}
+
+.first {
+  position: absolute;
+  display: none;
+}
+
+.second {
+  width: 400px;
+  height: 300px;
+  position: absolute;
+  background-color: red;
+  left: 100px;
+  top: 50px;
+}

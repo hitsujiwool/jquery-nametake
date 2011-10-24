@@ -1,0 +1,118 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  border: none;
+  list-style-type: none;
+  list-style-position: inside;
+}
+
+html {
+}
+
+body {
+  position: relative;
+}
+
+h1 {
+  position: relative;
+  z-index: 999;
+}
+
+#navigation {
+  padding: 10px;
+  width: 180px;
+  position: absolute;
+  top: 50px;
+  left: 30px;
+  z-index: 999;
+  background-color: #FFFFFF;
+}
+
+#navigation .main {
+  margin-bottom: 1em;
+}
+
+#navigation .main p {
+  margin-bottom: 1em;
+}
+
+#pages {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  top: 0;
+}
+
+.content {
+  padding: 30px;
+  width: 740px;
+  position: absolute;
+  top: 50px;
+  left: 300px;
+  background-color: #FFFFFF;
+  display: none;  
+}
+
+.content h2 {
+  margin-bottom: 1.5em;
+}
+
+.content p, .content ul, .content ol, .content h3, .content .quote, .content .figure {
+  margin-bottom: 1em;
+  line-height: 1.5;
+}
+
+.content ol li {
+  list-style-type: decimal;
+}
+
+.content pre {
+  border: 1px solid #EEEEEE;
+  padding: 20px;
+}
+
+.content .caption {
+  margin: 5px 0 0 0;
+  text-align: center;
+  line-height: 1;
+  font-size: 80%;
+}
+
+.content .image {
+  text-align: center;
+}
+
+.content .footerNavi {
+  margin-top: 20px;
+  height: 30px;
+  position: relative;
+} 
+
+.content .footerNavi p {
+  position: absolute;  
+}
+
+.content .prev {
+  left: 0;
+}
+
+.content .next {
+  right: 0;
+}
+
+.parent {
+  width: 100%;
+  min-height: 100%;
+  position: absolute;
+  top: 0;
+  display: none;
+}
+
+#about {
+  background-color: #AAAAAA;
+}
+
+#howto {
+  background-color: #EEEEEE;
+}

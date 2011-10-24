@@ -83,7 +83,7 @@ nametake.utils = {
   var Scene = function(manager, element, id, title) {
     EventEmitter.call(this);
     this.children = [];
-    this.element = element;
+    this.element = $(element);
     this.manager = manager;
     this.id = id;
     this.isReady = false;
@@ -100,13 +100,13 @@ nametake.utils = {
 
   Scene.prototype.load = function() {
     var that = this
-      , url = this.element.getAttribute('data-page-url');
+      , url = this.element.attr('data-page-url');
     if (url) {
       $.ajax({url : url, dataType: 'html', cache: false})
         .success(function(data) {
           var $data = $(data)
             , $head = $('head');
-          $(that.element).append($data.find('#' + params.ajaxElement).children());
+          that.element.append($data.find('#' + params.ajaxElement).children());
           $(data).each(function(i, elem) {
              if (elem.tagName == 'LINK') {
                if (stylesheets.indexOf(elem.href) === -1) {
@@ -323,7 +323,7 @@ nametake.utils = {
     $.each(this._scenes, function(id, scene) {
       if (filter === null) {
         result.push(scene);
-      } else if (filter instanceof RegExp && filter.test) {
+      } else if (filter instanceof RegExp && filter.test(id)) {
         result.push(scene);        
       } else if (typeof filter === 'function' && filter(scene)) {
         result.push(scene);

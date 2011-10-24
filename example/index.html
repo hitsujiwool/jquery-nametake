@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8">
+		<title>nametake</title>
+		<link rel="stylesheet" href="./style.css"/>
+		<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>-->
+		<script src="./jquery.1.6.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+		<script src="../jquery.nametake.js"></script>
+		<script src="../preloader.js"></script>
+		<script src="./site.js"></script>
+	</head>
+	<body>
+		<div id="map">
+			<ul>
+				<li><span>root</span></li>
+			</ul>
+			<ul>
+				<li><a href="./#!/1">/1</a></li>
+				<li><a href="./#!/2">/2</a></li>
+			</ul>
+			<ul>
+				<li>
+					<ul>
+						<li><a href="./#!/1/1">/1-1</a></li>
+						<li><a href="./#!/1/2">/1/2</a></li>
+					</ul>
+				</li>
+				<li>
+					<ul>
+						<li><a href="./#!/2/1">/2/1</a></li>
+						<li><a href="./#!/2/2">/2/2</a></li>
+					</ul>
+				</li>
+			</ul>
+			<ul>
+				<li>
+					<ul>
+						<li><a href="./#!/1/2/1">/1/2/1</a></li>
+						<li><a href="./#!/1/2/2">/1/2/2</a></li>
+						<li><a href="./#!/1/2/3">/1/2/3</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+		<div class="pages">
+			<div class="first" data-nametake-id="1">
+				<h2>Page 1</h2>
+				<div class="second" data-nametake-id="1">
+					<h3>Page 1-1</h3>				
+				</div>
+				<div class="second" data-nametake-id="2">
+					<h3>Page 1-2</h3>
+					<div class="third" data-nametake-id="1">
+						<h3>Page 1-2-1</h3>
+					</div>
+					<div class="third" data-nametake-id="2">				
+						<h3>Page 1-2-2</h3>
+					</div>				
+					<div class="third" data-nametake-id="3">				
+						<h3>Page 1-2-3</h3>
+					</div>
+				</div>
+			</div>
+			<div class="first" data-nametake-id="2">
+				<div class="second" data-nametake-id="1">
+					<h3>Page 2-1</h3>				
+				</div>
+				<div class="second" data-nametake-id="2">				
+					<h3>Page 2-2</h3>
+				</div>
+			</div>
+		</div>
+		<div class="debug">
+		</div>
+	</body>
+</html>

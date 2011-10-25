@@ -1,12 +1,33 @@
+
+
+if (!window.console) {
+  window.console = {
+    log: function() {}
+  };
+};
+
 $(function() {
   var nametake = $.nametake('.pages', {
-    changeHash: false,
+    changeHash: true,
     enablePreloader: false,
-    lock: true
+    lock: true,
+    initialSceneId: '/1'
   });
 
+  var log = (function() {
+    var $p = $('.log');
+    return function(msg) {
+      $p.text(msg);
+    };
+  })();
+
   nametake.on('initialize', function() {
-    this.moveTo('/1');
+    console.log('initialize');
+    this.moveTo(this.initialScene);
+  });
+
+  nametake.on('404', function() {
+    console.log(404);
   });
   
   nametake.on('transitionend', function() {
@@ -16,7 +37,7 @@ $(function() {
   nametake.on('transitionstart', function() {
     console.log('transitionstart');
   });
-
+  
   nametake.of(/.+/, function(scene) {
     scene
       .start(function(next) {
@@ -24,6 +45,7 @@ $(function() {
         next();      
       })
       .end(function(next) {
+        log(scene.id);
         console.log('End ' + scene.id);
         next();
       })
@@ -38,15 +60,6 @@ $(function() {
       .toSibling(function(to, next) {
         console.log('To ' + to.id + '. Sibling of ' + scene.id + '.');
         next();  
-      });
-  });
-
-  nametake.of(/^\/[0-9]+$/, function(scene) {
-    console.log(scene.id);
-    scene
-      .toChild(function(to, next) {
-        console.log(to.element);
-        to.element.fadeIn(next);
       });
   });
 });

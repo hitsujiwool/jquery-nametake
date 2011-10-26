@@ -29,22 +29,61 @@ body {
 
 .pages {
   clear: both;
+  border: 1px solid #DDDDDD;
   width: 600px;
   height: 400px;
   overflow: hidden;
-  background-color: #EEEEEE;
+  display: none;
+}
+
+.container {
+  position: relative;
+  height: 100%;
+  display: none;
 }
 
 .first {
   position: absolute;
-  display: none;
+  width: 600px;
+  background-color: #DDDDDD;
+}
+
+.first:nth-child(2) { 
+  left: 600px;
+}
+
+.first h2 {
+  height: 400px;
+  line-height: 400px;
+  text-align: center;
 }
 
 .second {
-  width: 400px;
-  height: 300px;
+  width: 600px;
+  height: 400px;
+  background-color: #555555;;
+  position: relative;
+}
+
+.second h3 {
+  height: 400px;
+  line-height: 400px;
+  text-align: center;
+}
+
+.second .left {
+  top: -400px;
+  left: -600px;
+}
+
+.second .right {
+  top: -400px;
+  left: 600px;
+}
+
+.third {
+  width: 600px;
+  height: 400px;
   position: absolute;
   background-color: red;
-  left: 100px;
-  top: 50px;
 }

@@ -13,9 +13,10 @@ if (!Array.prototype.indexOf) {
   };
 }
 
-var nametake = nametake || {};
+var net = net || {};
+net.hitsujiwool = net.hitsujiwool || {};
 
-nametake.utils = {
+net.hitsujiwool.utils = {
   inject: function(array, initial, callback) {
     var i,
         len;
@@ -29,20 +30,35 @@ nametake.utils = {
         len = queue.length,
         args = Array.prototype.slice.call(arguments, 2);    
     var next = function() {
-      nametake.utils.nextTick(function() {
+      net.hitsujiwool.utils.nextTick(function() {
         queue[i].apply(null, args.concat([i < len - 1 ? next : callback]));
         i++;
       });
     };
-    queue.length > 0 ? next() : nametake.utils.nextTick(callback);
+    queue.length > 0 ? next() : net.hitsujiwool.utils.nextTick(callback);
   },
   nextTick: function(callback) {
     setTimeout(callback, 0);
+  },
+  logger: function(enabled) {
+    if (enabled) {
+      if (!window.console) {
+        window.console = {
+          log: function() {}
+        };
+      };
+      return function(msg) {
+        console.log(msg);
+      };
+    } else {
+      return function(msg) {};
+    }
   }
 };
 
 (function($) {
-  var utils = nametake.utils;
+  var utils = net.hitsujiwool.utils,
+      log;
 
   var params = {
     ajaxTagName: 'body',
@@ -53,13 +69,6 @@ nametake.utils = {
   };
 
   var stylesheets = [];
-
-  var changeHash = function(value) {
-    location.hash = value;
-    if (typeof document.body.style.maxHeight === undefined) {
-      $(window).trigger('hashchange');
-    }
-  };
 
   /**
    * EventEmitter Pattern from move.js written by visionmedia
@@ -198,6 +207,7 @@ nametake.utils = {
     $.each(this.manager._getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
       (that._transitions[scene.id] = that._transitions[scene.id] || []).push(callback);     
     });
+    return this;
   };
 
   var Manager = function($root, options) {
@@ -246,7 +256,7 @@ nametake.utils = {
       }
     });
 
-    $(window).bind('hashchange', function(e) {      
+    $(window).bind('hashchange', function(e) {
       var scene;
       e.preventDefault();
       if (location.hash.indexOf('#!') > -1) {
@@ -260,9 +270,10 @@ nametake.utils = {
       }
     });
 
+    scenes['/'] = this.root;
     this._scenes = scenes;
     this.isLocked = false;
-    this.initialScene = this._getScene(params.initialSceneId) || this.root.children[0];
+    this.initialScene = params.initialSceneId ? this._getScene(params.initialSceneId) : this.root.children[0];
     if (params.changeHash && location.hash) this.initialScene = this._getScene(location.hash.split('#!')[1]);
     this.currentScene = this.root;
   };
@@ -284,11 +295,13 @@ nametake.utils = {
     if (this.currentScene === to) return;
     if (this.isLocked && params.lock) return;
     if (params.changeHash) {
-      location.hash = '!' + to.id;
       if (location.hash.split('#!')[1] === to.id || typeof document.body.style.maxHeight === undefined) {
         //初回読み込み時ですでに目的地のlocation.hashが付与されている場合は明示的にhashchangeイベントを発火
         //IE6の場合も発火
+        location.hash = '!' + to.id;
         $(window).trigger('hashchange');
+      } else {
+        location.hash = '!' + to.id;
       }
     } else {
       this._moveTo(to, skipTransition);
@@ -330,6 +343,7 @@ nametake.utils = {
         callback(scene);
       });
     }
+    return this;
   };
 
   Manager.prototype._getScene = function(sceneId) {
@@ -418,16 +432,20 @@ nametake.utils = {
     };
 
     var end = function() {
+      log('executes ' + to._ends.length + ' callback: ' + 'end ' + to.id);
       utils.runQueue(to._ends, function() {
         that.isLocked = false;
         that.currentScene = to;
+        log('trigger event transitionend');
         that.emit('transitionend', to);
       });
     };
 
     if (route.length >= 2) {
       this.isLocked = true;
+      log('trigger event transitionstart');
       this.emit('transitionstart', from);
+      log('executes ' + from._starts.length + ' callback: ' + 'start ' + from.id);
       utils.runQueue(from._starts, next);
     }
   };
@@ -436,6 +454,8 @@ nametake.utils = {
     var that = this
       , i = 0
       , transitions = from._transitions[to.id];
+
+    log('executes ' + (transitions ? transitions.length : 0) + ' callback: ' + from.id + ' to ' + to.id);
 
     if (transitions === undefined) {
       utils.nextTick(end);
@@ -446,6 +466,9 @@ nametake.utils = {
 
   $.nametake = function(context, options) {
     params = $.extend(params, options);
+    log = net.hitsujiwool.utils.logger(arguments.callee.debug);
     return new Manager($(context));
   };
+
+  $.nametake.debug = false;
 }(jQuery));

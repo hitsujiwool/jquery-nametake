@@ -11,7 +11,7 @@
 		<script src="../preloader.js"></script>
 		<script src="./site.js"></script>
 	</head>
-	<body>		
+	<body>
 		<p class="log"></p>
 		<div id="map">
 			<ul>
@@ -20,11 +20,13 @@
 			<ul>
 				<li><a href="./#!/1">/1</a></li>
 				<li><a href="./#!/2">/2</a></li>
+				<li><a href="./#!/3">/3</a></li>
+				<li><a href="./#!/4">/4</a></li>
 			</ul>
 			<ul>
 				<li>
 					<ul>
-						<li><a href="./#!/1/1">/1-1</a></li>
+						<li><a href="./#!/1/1">/1/1</a></li>
 						<li><a href="./#!/1/2">/1/2</a></li>
 					</ul>
 				</li>
@@ -46,30 +48,36 @@
 			</ul>
 		</div>
 		<div class="pages">
-			<div class="first" data-nametake-id="1">
-				<h2>Page 1</h2>
-				<div class="second" data-nametake-id="1">
-					<h3>Page 1-1</h3>				
-				</div>
-				<div class="second" data-nametake-id="2">
-					<h3>Page 1-2</h3>
-					<div class="third" data-nametake-id="1">
-						<h3>Page 1-2-1</h3>
+			<div class="container">
+				<div class="first" data-nametake-id="1">
+					<h2>Page 1</h2>
+					<div class="second" data-nametake-id="1">
+						<h3>Page 1-1</h3>				
 					</div>
-					<div class="third" data-nametake-id="2">				
-						<h3>Page 1-2-2</h3>
-					</div>				
-					<div class="third" data-nametake-id="3">				
-						<h3>Page 1-2-3</h3>
+					<div class="second" data-nametake-id="2">
+						<h3>Page 1-2</h3>
+						<div class="third left" data-nametake-id="1">
+							<h3>Page 1-2-1</h3>
+						</div>
+						<div class="third right" data-nametake-id="2">				
+							<h3>Page 1-2-2</h3>
+						</div>
 					</div>
 				</div>
-			</div>
-			<div class="first" data-nametake-id="2">
-				<div class="second" data-nametake-id="1">
-					<h3>Page 2-1</h3>				
+				<div class="first" data-nametake-id="2">
+					<h2>Page 2</h2>
+					<div class="second" data-nametake-id="1">
+						<h3>Page 2-1</h3>				
+					</div>
+					<div class="second" data-nametake-id="2">				
+						<h3>Page 2-2</h3>
+					</div>
 				</div>
-				<div class="second" data-nametake-id="2">				
-					<h3>Page 2-2</h3>
+				<div class="first" data-nametake-id="3">
+					<h2>Page 3</h2>
+				</div>
+				<div class="first" data-nametake-id="4">
+					<h2>Page 4</h2>
 				</div>
 			</div>
 		</div>

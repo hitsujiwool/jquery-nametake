@@ -11,9 +11,25 @@
 		<script src="./site.js"></script>
 	</head>
 	<body>
-		<h1>なめたけ</h1>
-		<div id="slide">
-			<p>例1：スライド中心の画面遷移
+		<div id="navigation">
+			<ul>
+				<li><a href="#summary">概要</a></li>
+				<li><a href="#features">機能</a></li>
+				<li><a href="#download">ダウンロード</a></li>
+				<li><a href="#document">ドキュメント</a></li>
+			</ul>
+		</div>
+		<div id="content">
+			<h1>なめたけ</h1>
+			<h2 id="summary">概要</h2>
+			<p>なめたけ(nametake)は、JavaScriptで書かれたシンプルなフレームワークです。主にWebサイト</p>
+			<h2>機能</h2>
+			<h3>プリローダ</h3>
+			<h3>外部ファイルのロード</h3>
+			<h2>ダウンロード</h2>
+			<p><a href=''>github</a>からダウンロードできます。</p>
+			
+			<h2>チュートリアル</h2>
 			<div class="map">
 				<div class="inner">
 					<span>root</span>
@@ -22,7 +38,7 @@
 							<a href="./#!/1">/1</a>
 							<ul>
 								<li class="left"><a href="./#!/1/1">/1/1</a></li><!--
-								--><li>
+							--><li>
 									<a href="./#!/1/2">/1/2</a>
 									<ul>
 										<li><a href="./#!/1/2/1" class="tight bottom">/1/2/1</a></li><!--

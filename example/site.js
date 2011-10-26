@@ -1,6 +1,6 @@
 $(function() {
   $.nametake.debug = true;
-  var nametake = $.nametake('#slide', {
+  var nametake = $.nametake('.pages', {
     changeHash: false,
     enablePreloader: false,
     lock: true,

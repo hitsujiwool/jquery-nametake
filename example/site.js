@@ -16,6 +16,7 @@ $(function() {
   });
 
   var $container = $('.container');
+  var $navigation = $('.navigation');
 
   var log = (function() {
     var $p = $('.log');
@@ -37,6 +38,16 @@ $(function() {
     })
     .on('404', function() {
       console.log(404);
+    })  
+    .on('transitionstart', function() {
+      $navigation.animate({top: -40});
+    })
+    .on('transitionend', function() {
+      var tmp = (function(scene) { return scene.parent ? arguments.callee(scene.parent).concat([scene.id]) : []; })(this.currentScene);
+      $navigation
+        .empty()
+        .append('<p>' + tmp.join('&nbsp;&nbsp;>&nbsp;&nbsp;') + '</p>')
+        .animate({top: 0});
     })
     .of('/', function(scene) {
       scene
@@ -69,21 +80,19 @@ $(function() {
     .of('/1/2/1', function(scene) {
       scene
         .start(function(next) {
-          next();
-          scene.element.animate({top: - scene.element.height(), left: - scene.element.width()});
+          scene.element.animate({left: '-=' + scene.element.width()}, next);
         })
         .end(function(next) {
-          scene.element.animate({top: 0, left: 0}, next);
+          scene.element.animate({left: '+=' + scene.element.width()}, next);
         });      
     })
     .of('/1/2/2', function(scene) {
       scene
         .start(function(next) {
-          next();
-          scene.element.animate({top: - scene.element.height(), left: scene.element.width()});
+          scene.element.animate({right: '-=' + scene.element.width()}, next);
         })
         .end(function(next) {
-          scene.element.animate({top: 0, left: 0}, next);
+          scene.element.animate({right: '+=' + scene.element.width()}, next);
         });      
     });
 });

@@ -10,6 +10,7 @@ html {
 }
 
 body {
+  padding: 10px;
 }
 
 #map ul {
@@ -32,8 +33,25 @@ body {
   border: 1px solid #DDDDDD;
   width: 600px;
   height: 400px;
+  position: relative;
   overflow: hidden;
   display: none;
+}
+
+.navigation {
+  width: 600px;
+  height: 30px;
+  position: absolute;
+  top: -30px;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1;
+}
+
+.navigation p {
+  padding-left: 10px;
+  height: 30px;
+  line-height: 30px;
+  color: #FFFFFF;
 }
 
 .container {
@@ -45,7 +63,6 @@ body {
 .first {
   position: absolute;
   width: 600px;
-  background-color: #DDDDDD;
 }
 
 .first:nth-child(2) { 
@@ -61,7 +78,7 @@ body {
 .second {
   width: 600px;
   height: 400px;
-  background-color: #555555;;
+  background-color: rgba(200, 200, 200, 0.4);
   position: relative;
 }
 
@@ -71,19 +88,24 @@ body {
   text-align: center;
 }
 
-.second .left {
-  top: -400px;
-  left: -600px;
+.left {
+  left: -100px;
 }
 
-.second .right {
-  top: -400px;
-  left: 600px;
+.right {
+  right: -100px;
 }
 
 .third {
-  width: 600px;
-  height: 400px;
+  width: 100px;
+  height: 300px;
   position: absolute;
-  background-color: red;
+  top: 50px;
+  background-color: rgba(255, 0, 0, 0.4);
+}
+
+.third h4 {
+  height: 300px;
+  line-height: 300px;
+  text-align: center;
 }

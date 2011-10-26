@@ -5,39 +5,72 @@
   list-style-type: none;
   list-style-position: inside;
 }
-
-html {
-}
-
 body {
+  margin: 0 auto;
+  width: 1000px;
   padding: 10px;
 }
-
-#map ul {
+.caption {
+  margin: 8px 0 10px 0;
+}
+.map {
+  width: 727px;
+  text-align: center;
+  position: relative;
+}
+.map .inner {
+  border: 1px solid #444444;
+  box-shadow: 5px 5px 5px #DDDDDD;
+  padding: 10px;
+}
+.map a, .map span {
+  margin: 0 30px 10px 30px;
+  padding: 10px 0 10px 0;
+  background-color: #EEEEEE;
+  display: inline-block;
+  box-shadow: 3px 3px 3px #555555;
+}
+.map a {
+  width: 80px;
+}
+.map span {
+  width: 150px;
+}
+.map ul {
   clear: both;
+  position: relative;
 }
-
-#map li {
-  padding: 10px 0;
-  float: left;
+.map .top {
+  position: relative;
 }
-
-
-#map a, #map span {
-  padding: 10px 30px;
-  background-color: #DDDDDD;
+.map li {
+  display: inline-block;
+  vertical-align: top;
 }
-
+.map .left {
+  left: 60px;
+  position: relative;
+}
+.map .left a {
+  margin-left: 0;
+}
+.map .tight {
+  margin: 0 5px 10px 5px;
+}
+.map .last {
+  margin-right: 60px;
+}
+.map .bottom {
+  margin-bottom: 0;
+}
 .pages {
   clear: both;
   border: 1px solid #DDDDDD;
-  width: 600px;
-  height: 400px;
+  width: 600px;  height: 400px;
   position: relative;
   overflow: hidden;
   display: none;
 }
-
 .navigation {
   width: 600px;
   height: 30px;
@@ -46,65 +79,51 @@ body {
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1;
 }
-
 .navigation p {
   padding-left: 10px;
   height: 30px;
   line-height: 30px;
   color: #FFFFFF;
 }
-
 .container {
   position: relative;
   height: 100%;
   display: none;
 }
-
 .first {
   position: absolute;
   width: 600px;
 }
-
-.first:nth-child(2) { 
-  left: 600px;
-}
-
 .first h2 {
   height: 400px;
   line-height: 400px;
   text-align: center;
 }
-
 .second {
   width: 600px;
   height: 400px;
   background-color: rgba(200, 200, 200, 0.4);
   position: relative;
 }
-
 .second h3 {
   height: 400px;
   line-height: 400px;
   text-align: center;
 }
-
 .left {
   left: -100px;
 }
-
 .right {
   right: -100px;
 }
-
-.third {
+.pages .third {
   width: 100px;
   height: 300px;
   position: absolute;
   top: 50px;
   background-color: rgba(255, 0, 0, 0.4);
 }
-
-.third h4 {
+.pages .third h4 {
   height: 300px;
   line-height: 300px;
   text-align: center;

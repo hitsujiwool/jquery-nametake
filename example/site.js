@@ -1,14 +1,6 @@
-
-
-if (!window.console) {
-  window.console = {
-    log: function() {}
-  };
-};
-
 $(function() {
   $.nametake.debug = true;
-  var nametake = $.nametake('.pages', {
+  var nametake = $.nametake('#slide', {
     changeHash: false,
     enablePreloader: false,
     lock: true,
@@ -37,7 +29,6 @@ $(function() {
       });
     })
     .on('404', function() {
-      console.log(404);
     })  
     .on('transitionstart', function() {
       $navigation.animate({top: -40});
@@ -52,7 +43,9 @@ $(function() {
     .of('/', function(scene) {
       scene
         .toChild(function(to, next) {
-          $container.fadeIn(next);          
+          $container
+            .css('left', - to.index() * to.element.width())
+            .fadeIn(next);          
         });
     })
     .of(/^\/[^/]+$/, function(scene) {

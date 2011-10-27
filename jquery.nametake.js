@@ -124,18 +124,21 @@ net.hitsujiwool.utils = {
         .success(function(data) {
           var $data = $(data)
             , $head = $('head');
+          
+          var stylesheets = data.match(/<link.+?href=['"]([^<>]*)["'].*?\/\s*>/g);
+          if (stylesheets) {
+            $.each(stylesheets, function(i, tag) {
+              var $elem = $(tag);
+              if (stylesheets.indexOf($elem.attr('href')) === -1) {
+                 stylesheets.push($elem.attr('href'));
+                 $head.prepend($elem);
+              }
+            });
+          }
+          that.title = data.match(/\<title\>([^\<]+)\<\/title\>/) ? RegExp.$1 : '';
           that.element.append($data.find('#' + params.ajaxElement).children());
           $(data).each(function(i, elem) {
-             if (elem.tagName == 'LINK') {
-               if (stylesheets.indexOf(elem.href) === -1) {
-                 stylesheets.push(elem.href);
-                 $head.prepend(elem);
-               }
-             } else if (elem.tagName == 'SCRIPT') {
-               $head.prepend(elem);
-             } else if (elem.tagName == 'TITLE') {
-               that.title = elem.innerText;
-             }
+            if (elem.tagName == 'SCRIPT') $head.prepend(elem);
           });
           that.isReady = true;
           //IE6だと非同期で呼ばれていなかったので、nextTickを挟む

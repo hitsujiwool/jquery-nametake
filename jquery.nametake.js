@@ -30,10 +30,12 @@ net.hitsujiwool.utils = {
         len = queue.length,
         args = Array.prototype.slice.call(arguments, 2);    
     var next = function() {
-      net.hitsujiwool.utils.nextTick(function() {
-        queue[i].apply(null, args.concat([i < len - 1 ? next : callback]));
-        i++;
-      });
+      queue[i].apply(null, args.concat([
+        function() {
+          net.hitsujiwool.utils.nextTick(i < len - 1 ? next : callback);
+        }
+      ]));
+      i++;
     };
     queue.length > 0 ? next() : net.hitsujiwool.utils.nextTick(callback);
   },

@@ -94,12 +94,12 @@
     for (i = 0, len = files.length; i < len; i++) {
       var image = new Image();
       //IE7以下だとonloadが非同期で動かない？？
-      image.onload = image.onerror = function(e) {
+      image.onload = image.onerror = image.onabort = function(e) {
         setTimeout(function() {
           counter++;
+          that.emit(e.type);
           if (total === counter && !nowWaiting) {
             clearTimeout(progressLoop);
-            that.emit(e.type);
             that.emit('progress');
             that.emit('complete');
           }

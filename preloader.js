@@ -55,7 +55,7 @@
               val = (style ? (style.getPropertyValue ? style.getPropertyValue('background-image') : style.backgroundImage) : null);
               //if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
             }
-            if (node.src !== undefined && node.tagName === 'IMG') {
+            if (node.src && node.tagName === 'IMG') {
               result.push(node.src);
             }
             arguments.callee(node);

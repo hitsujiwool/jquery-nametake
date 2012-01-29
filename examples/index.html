@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8">
+		<title>nametake</title>
+		<link rel="stylesheet" href="./style.css"/>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+		<script src="../jquery.nametake.js"></script>
+		<script src="../preloader.js"></script>
+		<script src="./site.js"></script>
+	</head>
+	<body>
+		<div id="navigation">
+			<ul>
+				<li><a href="#summary">概要</a></li>
+				<li><a href="#features">機能</a></li>
+				<li><a href="#download">ダウンロード</a></li>
+				<li><a href="#document">ドキュメント</a></li>
+			</ul>
+		</div>
+		<div id="content">
+			<h1>なめたけ</h1>
+			<h2 id="summary">概要</h2>
+			<p>なめたけ(nametake)は、JavaScriptで書かれたシンプルなフレームワークです。主にWebサイト</p>
+			<h2>機能</h2>
+			<h3>プリローダ</h3>
+			<h3>外部ファイルのロード</h3>
+			<h2>ダウンロード</h2>
+			<p><a href=''>github</a>からダウンロードできます。</p>
+			
+			<h2>チュートリアル</h2>
+			<div class="map">
+				<div class="inner">
+					<span>root</span>
+					<ul class="top">
+						<li>
+							<a href="./#!/1">/1</a>
+							<ul>
+								<li class="left"><a href="./#!/1/1">/1/1</a></li><!--
+							--><li>
+									<a href="./#!/1/2">/1/2</a>
+									<ul>
+										<li><a href="./#!/1/2/1" class="tight bottom">/1/2/1</a></li><!--
+										--><li><a href="./#!/1/2/2" class="tight bottom">/1/2/2</a></li>
+									</ul>								
+								</li>
+							</ul>
+						</li><!--
+						--><li>
+							<a href="./#!/2">/2</a>
+							<ul>
+								<li><a href="./#!/2/1" class="tight">/2/1</a></li><!--
+								--><li><a href="./#!/2/2" class="tight">/2/2</a></li>
+							</ul>
+						</li><!--
+						--><li><a href="./#!/3" class="tight">/3</a></li><!--
+						--><li><a href="./#!/4" class="tight last">/4</a></li>
+					</ul>
+				</div>
+				<p class="caption">sceneの階層構造</p>
+			</div>
+			<div class="pages">
+				<div class="navigation"></div>
+				<div class="container">
+					<div class="first" data-nametake-id="1">
+						<h2>Page 1</h2>
+						<div class="second" data-nametake-id="1">
+							<h3>Page 1-1</h3>				
+						</div>
+						<div class="second" data-nametake-id="2">
+							<h3>Page 1-2</h3>
+							<div class="third left" data-nametake-id="1">
+								<h4>Page 1-2-1</h4>
+							</div>
+							<div class="third right" data-nametake-id="2">				
+								<h4>Page 1-2-2</h4>
+							</div>
+						</div>
+					</div>
+					<div class="first" data-nametake-id="2">
+						<h2>Page 2</h2>
+						<div class="second" data-nametake-id="1">
+							<h3>Page 2-1</h3>				
+						</div>
+						<div class="second" data-nametake-id="2">				
+							<h3>Page 2-2</h3>
+						</div>
+					</div>
+					<div class="first" data-nametake-id="3">
+						<h2>Page 3</h2>
+					</div>
+					<div class="first" data-nametake-id="4">
+						<h2>Page 4</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

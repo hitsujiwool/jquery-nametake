@@ -32,15 +32,12 @@ net.hitsujiwool.utils = {
     var next = function() {
       queue[i].apply(null, args.concat([
         function() {
-          net.hitsujiwool.utils.nextTick(i < len - 1 ? next : callback);
+          setTimeout(i < len - 1 ? next : callback);
         }
       ]));
       i++;
     };
-    queue.length > 0 ? next() : net.hitsujiwool.utils.nextTick(callback);
-  },
-  nextTick: function(callback) {
-    setTimeout(callback, 0);
+    queue.length > 0 ? next() : setTimeout(callback);
   },
   logger: function(enabled) {
     if (enabled) {
@@ -147,14 +144,14 @@ net.hitsujiwool.utils = {
             if (elem.tagName == 'SCRIPT') $head.prepend(elem);
           });
           that.isReady = true;
-          //IE6だと非同期で呼ばれていなかったので、nextTickを挟む
-          utils.nextTick(function() { that.emit('loadcomplete'); });
+          //IE6だと非同期で呼ばれていなかったので、setTimeoutを挟む
+          setTimeout(function() { that.emit('loadcomplete'); });
         })
         .error(function(data) {
         });
     } else {
       this.isReady = true;
-      utils.nextTick(function() { that.emit('loadcomplete'); });
+      setTimeout(function() { that.emit('loadcomplete'); });
     }
   };
 
@@ -228,7 +225,7 @@ net.hitsujiwool.utils = {
     EventEmitter.call(this);
     if (params.enablePreloader) {
       Preloader.init(function(preloader) {
-        utils.nextTick(function() { that.emit('preinitialize', preloader); });
+        setTimeout(function() { that.emit('preinitialize', preloader); });
         that.root = that._parseScene($root.get(0), function(scene) {
           scene.on('loadcomplete', function(scene) {
             preloader.incLoaded();
@@ -294,7 +291,7 @@ net.hitsujiwool.utils = {
 
   Manager.prototype.initialize = function() {
     var that = this;
-    utils.nextTick(function() { that.emit('initialize'); });
+    setTimeout(function() { that.emit('initialize'); });
   };
 
   Manager.prototype.moveTo = function(target, skipTransition) {
@@ -323,8 +320,8 @@ net.hitsujiwool.utils = {
     var that = this;
     document.title = to.title || '';
     if (skipTransition) {
-      utils.nextTick(function() { that.emit('transitionstart', that.currentScene); }, 0);
-      utils.nextTick(function() { that.emit('transitionend', to); }, 0);
+      setTimeout(function() { that.emit('transitionstart', that.currentScene); }, 0);
+      setTimeout(function() { that.emit('transitionend', to); }, 0);
     } else {
       this._run(this.currentScene, to);
     }
@@ -469,7 +466,7 @@ net.hitsujiwool.utils = {
     log('executes ' + (transitions ? transitions.length : 0) + ' callback: ' + from.id + ' to ' + to.id);
 
     if (transitions === undefined) {
-      utils.nextTick(end);
+      setTimeout(end);
     } else {
       utils.runQueue(transitions, end, to);
     }

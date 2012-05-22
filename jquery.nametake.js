@@ -114,45 +114,9 @@ net.hitsujiwool.utils = {
   };
 
   Scene.prototype.load = function() {
-    var that = this
-      , url = this.element.attr('data-page-url');
-    if (url) {
-      $.ajax({url : url, dataType: 'html', cache: false})
-        .success(function(data) {
-          var $data = $(data)
-            , $head = $('head');          
-          var linkTags = data.match(/<link.+?href=['"][^<>]*["'].*?\/\s*>/g);
-          if (linkTags) {
-            $.each(linkTags, function(i, tag) {
-              var $elem = $(tag);
-              if (stylesheets.indexOf($elem.attr('href')) === -1) {
-                stylesheets.push($elem.attr('href'));
-                $head.prepend($elem);
-              }
-            });
-          }
-          that.title = data.match(/\<title\>([^\<]+)\<\/title\>/) ? RegExp.$1 : '';
-          that.element.append($data.find('#' + params.ajaxElement).children());
-          $(data).each(function(i, elem) {
-            if (elem.tagName == 'LINK') {
-              //IEだと上記の方法だとタグが挿入されない？　のでもう一度
-              if (stylesheets.indexOf(elem.href) === -1) {
-                stylesheets.push(elem.href);
-                $head.prepend(elem);
-              }
-            }
-            if (elem.tagName == 'SCRIPT') $head.prepend(elem);
-          });
-          that.isReady = true;
-          //IE6だと非同期で呼ばれていなかったので、setTimeoutを挟む
-          setTimeout(function() { that.emit('loadcomplete'); });
-        })
-        .error(function(data) {
-        });
-    } else {
-      this.isReady = true;
-      setTimeout(function() { that.emit('loadcomplete'); });
-    }
+    var that = this;
+    this.isReady = true;
+    setTimeout(function() { that.emit('loadcomplete'); });
   };
 
   Scene.prototype.index = function(scene) {

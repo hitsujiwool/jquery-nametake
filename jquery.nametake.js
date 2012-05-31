@@ -186,9 +186,9 @@
   };
 
   var Manager = function($root, options) {
-    var that = this
-      , scenes = {}
-      , counter = 0;
+    var that = this,
+        scenes = {},
+        counter = 0;
     EventEmitter.call(this);
     if (params.enablePreloader) {
       Preloader.init(function(preloader) {
@@ -340,10 +340,10 @@
   };
 
   Manager.prototype._parseScene = function(elem, callback, parent) {
-    var i
-      , nodes
-      , len
-      , scene;
+    var i,
+        nodes,
+        len,
+        scene;
     parent = parent || new Scene(this, elem, '/');
     if (elem.hasChildNodes()) {
       nodes = elem.childNodes;
@@ -426,9 +426,9 @@
   };
 
   Manager.prototype._fire = function(from, to, end) {
-    var that = this
-      , i = 0
-      , transitions = from._transitions[to.id];
+    var that = this,
+        i = 0,
+        transitions = from._transitions[to.id];
 
     log('executes ' + (transitions ? transitions.length : 0) + ' callback: ' + from.id + ' to ' + to.id);
 

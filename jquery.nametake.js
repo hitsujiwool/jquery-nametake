@@ -4,78 +4,78 @@
  * Copyright(c) 2012 hitsujiwool <utatanenohibi@gmail.com>
  * MIT Licensed
  */
-if (typeof Array.prototype.indexOf === 'undefined') {
-  Array.prototype.indexOf = function(target) {
-    var i;
-    for (i = 0; i < this.length; i++) {
-      if (this[i] === target) {
-        return i;
-      }
-    }
-    return -1;
-  };
-}
-
-var net = net || {};
-net.hitsujiwool = net.hitsujiwool || {};
-
-net.hitsujiwool.utils = {
-  inject: function(array, initial, callback) {
-    var i,
-        len;
-    for (i = 0, len = array.length; i < len; i++) {
-      initial = callback(initial, array[i]);
-    }
-    return initial;
-  },
-  runQueue: function(queue, callback) {
-    var i = 0,
-        len = queue.length,
-        args = Array.prototype.slice.call(arguments, 2);    
-    var next = function() {
-      queue[i].apply(null, args.concat([
-        function() {
-          setTimeout(i < len - 1 ? next : callback);
-        }
-      ]));
-      i++;
-    };
-    queue.length > 0 ? next() : setTimeout(callback);
-  },
-  logger: function(enabled) {
-    if (enabled) {
-      if (!window.console) {
-        window.console = {
-          log: function() {}
-        };
-      };
-      return function(msg) {
-        console.log(msg);
-      };
-    } else {
-      return function(msg) {};
-    }
-  }
-};
 
 (function($) {
-  var utils = net.hitsujiwool.utils,
-      log;
 
-  var params = {
-    ajaxTagName: 'body',
-    lock: false,
-    changeTitle: true,
-    changeHash: true,
-    enablePreloader: true
+  /**
+   * Utility functions
+   */
+
+  var util = {
+    indexOf: function(array, target) {
+      if (typeof Array.prototype.indexOf === 'function') {
+        return array.indexOf(target);
+      } else {
+        for (var i = 0; i < array.length; i++) {
+          if (array[i] === target) {
+            return i;
+          }
+        }
+        return -1;
+      }
+    },
+    inject: function(array, initial, callback) {
+      var i,
+          len;
+      for (i = 0, len = array.length; i < len; i++) {
+        initial = callback(initial, array[i]);
+      }
+      return initial;
+    },
+    runQueue: function(queue, callback) {
+      var i = 0,
+          len = queue.length,
+          args = Array.prototype.slice.call(arguments, 2);    
+      var next = function() {
+        queue[i].apply(null, args.concat([
+          function() {
+            setTimeout(i < len - 1 ? next : callback);
+          }
+        ]));
+        i++;
+      };
+      queue.length > 0 ? next() : setTimeout(callback);
+    },
+    logger: function(enabled) {
+      if (enabled) {
+        if (!window.console) {
+          window.console = {
+            log: function() {}
+          };
+        };
+        return function(msg) {
+          console.log(msg);
+        };
+      } else {
+        return function(msg) {};
+      }
+    }
   };
 
-  var stylesheets = [];
+  var log;
+  
+  var params = {
+    lock: true,
+    changeTitle: false,
+    changeHash: false,
+    enablePreloader: false
+  };
 
   /**
    * EventEmitter Pattern from move.js written by visionmedia
    * https://github.com/visionmedia/move.js/blob/master/move.js
    */
+
   var EventEmitter = function() {
     this.callbacks = {};
   };
@@ -127,7 +127,7 @@ net.hitsujiwool.utils = {
   };
 
   Scene.prototype.indexOf = function(scene) {
-    return this.children.indexOf(scene);
+    return util.indexOf(this.children, scene);
   };
 
   Scene.prototype.isDescendantOf = function(scene) {
@@ -408,7 +408,7 @@ net.hitsujiwool.utils = {
 
     var end = function() {
       log('executes ' + to._ends.length + ' callback: ' + 'end ' + to.id);
-      utils.runQueue(to._ends, function() {
+      util.runQueue(to._ends, function() {
         that.isLocked = false;
         that.currentScene = to;
         log('trigger event transitionend');
@@ -421,7 +421,7 @@ net.hitsujiwool.utils = {
       log('trigger event transitionstart');
       this.emit('transitionstart', from);
       log('executes ' + from._starts.length + ' callback: ' + 'start ' + from.id);
-      utils.runQueue(from._starts, next);
+      util.runQueue(from._starts, next);
     }
   };
 
@@ -435,15 +435,16 @@ net.hitsujiwool.utils = {
     if (transitions === undefined) {
       setTimeout(end);
     } else {
-      utils.runQueue(transitions, end, to);
+      util.runQueue(transitions, end, to);
     }
   };
 
   $.nametake = function(context, options) {
     params = $.extend(params, options);
-    log = net.hitsujiwool.utils.logger(arguments.callee.debug);
+    log = util.logger(arguments.callee.debug);
     return new Manager($(context));
   };
 
   $.nametake.debug = false;
+
 }(jQuery));

@@ -1,7 +1,10 @@
-/**
- * nametake.js
+
+/*!
+ * jquery.nametake
+ * Copyright(c) 2012 hitsujiwool <utatanenohibi@gmail.com>
+ * MIT Licensed
  */
-if (!Array.prototype.indexOf) {
+if (typeof Array.prototype.indexOf === 'undefined') {
   Array.prototype.indexOf = function(target) {
     var i;
     for (i = 0; i < this.length; i++) {

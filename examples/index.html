@@ -11,7 +11,6 @@
     <script src="./javascripts/site.js"></script>
   </head>
   <body>
-    <img src="">
     <div id="content">
       <div class="map">
         <div class="inner">
@@ -20,61 +19,61 @@
             <li>
               <a href="./#!/1">/1</a>
               <ul>
-                <li class="left"><a href="./#!/1/1">/1/1</a></li><!--
+                <li>
+                  <a href="./#!/1/1">/1/1</a>
+                </li><!--
              --><li>
                   <a href="./#!/1/2">/1/2</a>
-                  <ul>
-                    <li><a href="./#!/1/2/1" class="tight bottom">/1/2/1</a></li><!--
-                 --><li><a href="./#!/1/2/2" class="tight bottom">/1/2/2</a></li>
-                  </ul>                               
                 </li>
               </ul>
             </li><!--
          --><li>
               <a href="./#!/2">/2</a>
               <ul>
-                <li><a href="./#!/2/1" class="tight">/2/1</a></li><!--
-             --><li><a href="./#!/2/2" class="tight">/2/2</a></li>
+                <li><a href="./#!/2/1">/2/1</a></li><!--
+             --><li><a href="./#!/2/2">/2/2</a></li>
               </ul>
             </li><!--
-         --><li><a href="./#!/3" class="tight">/3</a></li><!--
-         --><li><a href="./#!/4" class="tight last">/4</a></li>
+         --><li><a href="./#!/3" class="last">/3</a></li>
           </ul>
         </div>
-        <p class="caption">sceneの階層構造</p>
+        <p class="caption">Scene Tree</p>
       </div>
-      <div class="pages">
-        <div class="navigation"></div>
-        <div class="container">
-          <div class="first" data-nametake-id="1">
-            <h2>Page 1</h2>
-            <div class="second" data-nametake-id="1">
-              <h3>Page 1-1</h3>               
-            </div>
-            <div class="second" data-nametake-id="2">
-              <h3>Page 1-2</h3>
-              <div class="third left" data-nametake-id="1">
-                <h4>Page 1-2-1</h4>
+      <div class="frame">
+        <div class="overlay">
+          <div class="bar"></div>
+        </div>
+        <div class="pages">
+          <div class="navigation"></div>
+          <div class="container">
+            <div class="first" data-nametake-id="1" data-nametake-title="sheep!">
+              <p><img src="images/sample1.jpg" width="320" height="320"/></p>
+              <div class="second" data-nametake-id="1" data-nametake-title="sheep!">
+                <p><img src="images/sample2.jpg" width="320" height="320"/></p>
               </div>
-              <div class="third right" data-nametake-id="2">              
-                <h4>Page 1-2-2</h4>
+              <div class="second" data-nametake-id="2" data-nametake-title="sheep!">
+                <p><img src="images/sample3.jpg" width="320" height="320"/></p>
+                <div class="third left" data-nametake-id="1">
+                  <h4>Page 1-2-1</h4>
+                </div>
+                <div class="third right" data-nametake-id="2">              
+                  <h4>Page 1-2-2</h4>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="first" data-nametake-id="2">
-            <h2>Page 2</h2>
-            <div class="second" data-nametake-id="1">
-              <h3>Page 2-1</h3>               
+            <div class="first" data-nametake-id="2" data-nametake-title="food!">
+              <p><img src="images/sample4.jpg" width="320" height="320"/></p>
+              <div class="second" data-nametake-id="1" data-nametake-title="food!">
+                <p><img src="images/sample5.jpg" width="320" height="320"/></p>
+              </div>
+              <div class="second" data-nametake-id="2" data-nametake-title="food!">
+                <p><img src="images/sample6.jpg" width="320" height="320"/></p>
+                <h3>Page 2-2</h3>
+              </div>
             </div>
-            <div class="second" data-nametake-id="2">               
-              <h3>Page 2-2</h3>
+            <div class="first" data-nametake-id="3" data-nametake-title="cat!">
+              <p><img src="images/sample7.jpg" width="320" height="320"/></p>
             </div>
-          </div>
-          <div class="first" data-nametake-id="3">
-            <h2>Page 3</h2>
-          </div>
-          <div class="first" data-nametake-id="4">
-            <h2>Page 4</h2>
           </div>
         </div>
       </div>

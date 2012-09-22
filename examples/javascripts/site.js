@@ -3,12 +3,14 @@ $(function() {
   var nametake = $.nametake('.pages', {
     changeHash: true,
     enablePreloader: true,
-    lock: true,
+    lock: false,
     initialSceneId: '/1'
   });
 
-  var $container = $('.container');
-  var $navigation = $('.navigation');
+  var $container = $('.container'),
+      $navigation = $('.navigation'),
+      $overlay = $('.overlay'),
+      $bar =$('.bar');
 
   var log = (function() {
     var $p = $('.log');
@@ -19,10 +21,15 @@ $(function() {
 
   nametake
     .on('preinitialize', function(preloader, next) {
-      preloader.on('progress', function() {
-        console.log('progress');
+      preloader.on('progress', function(n) {        
+        $bar.stop(true).animate({ width: $container.width() * n }, { easing: 'linear', duration: 100 });
       });
-      preloader.on('complete', next);
+      preloader.on('complete', function() {
+        next();
+        $overlay.delay(200).fadeOut(function() {
+          $overlay.remove();
+        });
+      });
     });
 
   nametake
@@ -37,9 +44,10 @@ $(function() {
       });
     })
     .on('404', function() {
+      alert('404');
     })  
     .on('transitionstart', function() {
-      $navigation.animate({top: -40});
+      $navigation.stop(true).animate({top: -40});
     })
     .on('transitionend', function() {
       var tmp = (function(scene) { return scene.parent ? arguments.callee(scene.parent).concat([scene.id]) : []; })(this.currentScene);
@@ -50,10 +58,9 @@ $(function() {
     })
     .of('/', function(scene) {
       scene
-        .to('child', function(to, data, next) {
+        .to('child', function(to, data) {
           $container
-            .css('left', - to.index() * to.element.width())
-            .fadeIn(next);
+            .css('left', - to.index() * to.element.width());
         });
     })
     .of(/^\/[^/]+$/, function(scene) {
@@ -76,24 +83,5 @@ $(function() {
         .to('sibling', function(to, data, next) {
           to.parent.element.animate({top: - (to.index() + 1) * $container.height()}, next);
         });
-    })
-    .of('/1/2/1', function(scene) {
-      scene
-        .to('any', function(to, data, next) {
-          scene.element.animate({left: '-=' + scene.element.width()}, next);
-        })
-        .from('any', function(from, data, next) {
-          scene.element.animate({left: '+=' + scene.element.width()}, next);
-        });      
-    })
-    .of('/1/2/2', function(scene) {
-      scene
-        .to('any', function(to, data, next) {
-          scene.element.animate({right: '-=' + scene.element.width()}, next);
-        })
-        .from('any', function(from, data, next) {
-          scene.element.animate({right: '+=' + scene.element.width()}, next);
-        });      
     });
-
 });

@@ -12,6 +12,7 @@
    */
 
   var util = {
+    // for IE compatibility
     indexOf: function(array, target) {
       if (typeof Array.prototype.indexOf === 'function') {
         return array.indexOf(target);
@@ -23,28 +24,6 @@
         }
         return -1;
       }
-    },
-    inject: function(array, initial, callback) {
-      var i,
-          len;
-      for (i = 0, len = array.length; i < len; i++) {
-        initial = callback(initial, array[i]);
-      }
-      return initial;
-    },
-    runQueue: function(queue, callback) {
-      var i = 0,
-          len = queue.length,
-          args = Array.prototype.slice.call(arguments, 2);    
-      var next = function() {
-        queue[i].apply(null, args.concat([
-          function() {
-            setTimeout(i < len - 1 ? next : callback);
-          }
-        ]));
-        i++;
-      };
-      queue.length > 0 ? next() : setTimeout(callback);
     },
     logger: function(enabled) {
       if (enabled) {
@@ -104,11 +83,10 @@
     this.element = $(element);
     this.manager = manager;
     this.id = id;
-    this.isReady = false;
-    this._transitions = {};
-    this._starts = [];
-    this._ends = [];
+    this.transitions = {};
   };
+
+  // inherit EventEmitter
   Scene.prototype = new EventEmitter();
 
   Scene.prototype.addScene = function(scene) {
@@ -116,112 +94,315 @@
     this.numChildren = this.children.length;
   };
 
-  Scene.prototype.load = function() {
-    var that = this;
-    this.isReady = true;
-    setTimeout(function() { that.emit('loadcomplete'); });
-  };
+  /**
+   * Register 'to' callbacks.
+   * 
+   * @param {String} event
+   * @param {Function} callback
+   * @return {Scene}
+   */
 
-  Scene.prototype.index = function(scene) {
-    return (this === this.manager.root) ? 0 : this.parent.indexOf(this);
-  };
-
-  Scene.prototype.indexOf = function(scene) {
-    return util.indexOf(this.children, scene);
-  };
-
-  Scene.prototype.isDescendantOf = function(scene) {
-    return this.id.indexOf(scene instanceof Scene ? (scene.id === '/' ? '/' : scene.id + '/') : scene) === 0;
-  };
-
-  Scene.prototype.isSiblingOf = function(scene) {
-    return this === this.manager.root ? false : this.parent.indexOf(scene) > -1 && this !== scene;
-  };
-
-  Scene.prototype.hasPrev = function() {
-    return this === this.manager.root ? false : this.parent.indexOf(this) - 1 >= 0;
-  };
-
-  Scene.prototype.hasNext = function() {
-    return this === this.manager.root ? false : this.parent.indexOf(this) + 1 <= this.parent.children.length - 1;
-  };
-
-  Scene.prototype.prev = function() {
-    return this === this.manager.root ? undefined : this.parent.children[this.parent.indexOf(this) - 1];
-  };
-
-  Scene.prototype.next = function() {
-    return this === this.manager.root ? undefined : this.parent.children[this.parent.indexOf(this) + 1];
-  };
-
-  Scene.prototype.start = function(callback) {
-    this._starts.push(callback);
-    return this;
-  };
-
-  Scene.prototype.end = function(callback) {
-    this._ends.push(callback);
+  Scene.prototype.to = function(event, callback) {
+    switch (event) {
+    case 'child':
+      this.toChild(callback);
+      break;
+    case 'parent':
+      this.toParent(callback);
+      break;
+    case 'sibling':
+      this.toSibling(callback);
+      break;
+    case 'any':
+      this.toChild(callback);
+      this.toParent(callback);
+      this.toSibling(callback);      
+      break;
+    default:
+      throw new Error('Unknown event ' + event + '.');
+    }
     return this;
   };
 
   Scene.prototype.toChild = function(callback) {
     var that = this;
     $.each(this.children, function(i, scene) {
-      (that._transitions[scene.id] = that._transitions[scene.id] || []).push(callback);
+      (that.transitions[scene.id] = that.transitions[scene.id] || []).push({ type: 'to', callback: callback });
     });
     return this;
   };
 
   Scene.prototype.toParent = function(callback) {
-    (this._transitions[this.parent.id] = this._transitions[this.parent.id] || []).push(callback);
+    (this.transitions[this.parent.id] = this.transitions[this.parent.id] || []).push({ type: 'to', callback: callback });
     return this;
   };
 
   Scene.prototype.toSibling = function(callback) {
     var that = this;
     $.each(this.manager._getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
-      (that._transitions[scene.id] = that._transitions[scene.id] || []).push(callback);     
+      (that.transitions[scene.id] = that.transitions[scene.id] || []).push({ type: 'to', callback: callback });
     });
     return this;
+  };
+
+  /**
+   * Register 'from' callbacks.
+   * 
+   * @param {String} event
+   * @param {Function} callback
+   * @return {Scene}
+   */
+
+  Scene.prototype.from = function(event, callback) {
+    switch (event) {
+    case 'child':
+      this.fromChild(callback);
+      break;
+    case 'parent':
+      this.fromParent(callback);
+      break;
+    case 'sibling':
+      this.fromSibling(callback);
+      break;
+    case 'any':
+      this.fromChild(callback);
+      this.fromParent(callback);
+      this.fromSibling(callback);      
+      break;
+    default:
+      throw new Error('Unknown event ' + event + '.');
+    }
+    return this;
+  };
+
+  Scene.prototype.fromChild = function(callback) {
+    var that = this;
+    $.each(this.children, function(i, scene) {
+      (scene.transitions[that.id] = scene.transitions[that.id] || []).push({ type: 'from', callback: callback });
+    });
+    return this;
+  };
+
+  Scene.prototype.fromParent = function(callback) {
+    (this.parent.transitions[this.id] = this.parent.transitions[this.id] || []).push({ type: 'from', callback: callback });
+    return this;
+  };
+
+  Scene.prototype.fromSibling = function(callback) {
+    var that = this;
+    $.each(this.manager._getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
+      (scene.transitions[that.id] = scene.transitions[that.id] || []).push({ type: 'from', callback: callback });
+    });
+    return this;
+  };
+
+  /**
+   * Apply scene.indexOf() with its parent and itself.
+   */
+
+  Scene.prototype.index = function() {
+    return (this === this.manager.root) ? 0 : this.parent.indexOf(this);
+  };
+
+  /**
+   * Return index of a given scene.
+   * 
+   * @param {Scene} scene
+   * @return {Number}
+   */
+
+  Scene.prototype.indexOf = function(scene) {
+    return util.indexOf(this.children, scene);
+  };
+
+  /**
+   * Whether it is decendant of a given scene.
+   * 
+   * @param {Scene} scene
+   * @return {Boolean}
+   */
+
+  Scene.prototype.isDescendantOf = function(scene) {
+    return this.id.indexOf(scene instanceof Scene ? (scene.id === '/' ? '/' : scene.id + '/') : scene) === 0;
+  };
+
+  /**
+   * Whether it is sibling of a given scene.
+   * 
+   * @param {Scene} scene
+   * @return {Boolean}
+   */
+
+  Scene.prototype.isSiblingOf = function(scene) {
+    return this === this.manager.root ? false : this.parent.indexOf(scene) > -1 && this !== scene;
+  };
+
+  /**
+   * Whether it has older sibling.
+   * 
+   * @return {Boolean}
+   */
+
+  Scene.prototype.hasPrev = function() {
+    return this === this.manager.root ? false : this.parent.indexOf(this) - 1 >= 0;
+  };
+
+  /**
+   * Whether it has younger sibling.
+   * 
+   * @return {Boolean}
+   */
+
+  Scene.prototype.hasNext = function() {
+    return this === this.manager.root ? false : this.parent.indexOf(this) + 1 <= this.parent.children.length - 1;
+  };
+
+  /**
+   * Return its older sibling.
+   * 
+   * @return {Scene}
+   */
+
+  Scene.prototype.getPrev = function() {
+    return this === this.manager.root ? undefined : this.parent.children[this.parent.indexOf(this) - 1];
+  };
+
+  /**
+   * Return its younger sibling.
+   * 
+   * @return {Scene}
+   */
+
+  Scene.prototype.getNext = function() {
+    return this === this.manager.root ? undefined : this.parent.children[this.parent.indexOf(this) + 1];
+  };
+
+  function Queue() {
+    this.callbacks = [];
+    this.argsAlwaysPassed = { none: [] };
+    this.piped = [];
+  }
+
+  /**
+   * Assign what arguments to be passed.
+   * 
+   * @param {String} type
+   * @param {...Mixed} args
+   */
+
+  Queue.prototype.pass = function(type) {    
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (type === 'none') {
+      throw new Error('Sorry, type "none" is already reserved.');
+    }
+    this.argsAlwaysPassed[type] = args;
+    return this;
+  };
+
+  /**
+   * Queue callback.
+   * 
+   * @param {Function} callback
+   */
+
+  Queue.prototype.queue = function(type, callback) {
+    if (typeof type === 'function') {
+      callback = type;
+      type = 'none';
+    }
+    this.callbacks.push({ type: type, callback: callback });
+    return this;
+  };
+
+  /**
+   * Pipe another queue
+   * 
+   * @param {...Queue} args
+   */
+
+  Queue.prototype.pipe = function() {
+    var queues = Array.prototype.slice.call(arguments),
+        next = queues.shift();     
+    if (next) {
+      this.piped.push(next);
+      next.pipe.apply(next, queues);
+    }
+    return this;
+  };
+
+  /**
+   * Execute callback sequentially
+   * 
+   * @param {Function} end
+   */
+
+  Queue.prototype.run = function(initialVal, end) {
+    var that = this,
+        i = 0,
+        data = initialVal;
+    function next(res) {
+      var task = that.callbacks[i++],
+          callback,
+          type;
+      data = res;
+      if (!task) {
+        if (that.piped.length > 0) {
+          for (var j = 0, len = that.piped.length; j < len; j++) {
+            that.piped[j].run(res, end);
+          }
+        } else {
+          end && end(data);
+        }
+      } else {
+        callback = task.callback,
+        type = task.type;
+        if (callback.length <= that.argsAlwaysPassed[type].length + 1) {
+          // call sync
+          callback.apply(null, that.argsAlwaysPassed[type].concat([data]));
+          next(data);
+        } else {
+          // wait for 'next' to be called
+          callback.apply(null, that.argsAlwaysPassed[type].concat([data, next]));
+        }
+      }
+    }
+
+    // execute first callback
+    next(data);
   };
 
   var Manager = function($root, options) {
     var that = this,
         scenes = {},
-        counter = 0;
+        counter = 0,
+        initialScene;
+
     EventEmitter.call(this);
+    scenes['/'] = this.root = this._parseScene($root.get(0), function(scene) {
+      if (scenes[scene.id]) {
+        throw new Error('Scene [' + scene.id + '] already exists!');
+      } else {
+        scenes[scene.id] = scene;
+      }
+    });
+
+    this._scenes = scenes;
+
+    initialScene = params.initialSceneId ? this._getScene(params.initialSceneId) : this.root.children[0];
+    if (params.changeHash && location.hash) {
+      initialScene = this._getScene(location.hash.split('#!')[1]);
+    }
+
     if (params.enablePreloader) {
       Preloader.init(function(preloader) {
-        setTimeout(function() { that.emit('preinitialize', preloader); });
-        that.root = that._parseScene($root.get(0), function(scene) {
-          scene.on('loadcomplete', function(scene) {
-            preloader.incLoaded();
+        setTimeout(function() {
+          that.emit('preinitialize', preloader, function() {
+            that.emit('initialize', initialScene);
           });
-          preloader.incTotal();
-          scene.load();
-          if (scenes[scene.id]) {
-            throw new Error('Scene [' + scene.id + '] already exists!');
-          } else {
-            scenes[scene.id] = scene;
-          }
         });
       });
     } else {
-      that.root = that._parseScene($root.get(0), function(scene) {
-        scene.on('loadcomplete', function() {
-          counter--;
-          if (counter === 0) {
-            that.emit('initialize');
-          }
-        });
-        scene.load();
-        counter++;
-        if (scenes[scene.id]) {
-          throw new Error('Scene [' + scene.id + '] already exists!');
-        } else {
-          scenes[scene.id] = scene;
-        }
-      });
+      setTimeout(function() { this.emit('initialize', initialScene); });
     }
 
     $('a').live('click', function(e) {
@@ -245,23 +426,13 @@
       }
     });
 
-    scenes['/'] = this.root;
-    this._scenes = scenes;
     this.isLocked = false;
-    this.initialScene = params.initialSceneId ? this._getScene(params.initialSceneId) : this.root.children[0];
-    if (params.changeHash && location.hash) this.initialScene = this._getScene(location.hash.split('#!')[1]);
     this.currentScene = this.root;
   };
 
   Manager.prototype = new EventEmitter();
-  Manager.prototype.constructor = Manager;
 
-  Manager.prototype.initialize = function() {
-    var that = this;
-    setTimeout(function() { that.emit('initialize'); });
-  };
-
-  Manager.prototype.moveTo = function(target, skipTransition) {
+  Manager.prototype.moveTo = function(target) {
     var to = target instanceof Scene ? target : this._getScene(target);
     if (to === undefined) {
       this.emit('404');
@@ -279,35 +450,25 @@
         location.hash = '!' + to.id;
       }
     } else {
-      this._moveTo(to, skipTransition);
+      this._moveTo(to);
     }
   };
 
-  Manager.prototype._moveTo = function(to, skipTransition) {
-    var that = this;
-    document.title = to.title || '';
-    if (skipTransition) {
-      setTimeout(function() { that.emit('transitionstart', that.currentScene); }, 0);
-      setTimeout(function() { that.emit('transitionend', to); }, 0);
-    } else {
-      this._run(this.currentScene, to);
-    }
+  Manager.prototype._moveTo = function(scene) {
+    document.title = scene.title || '';
+    this._run(this.currentScene, scene);
   };
 
   Manager.prototype.moveToPrev = function() {
     if (this.currentScene.hasPrev()) {
-      this.moveTo(this.currentScene.prev().id);
+      this.moveTo(this.currentScene.getPrev());
     }
   };
 
   Manager.prototype.moveToNext = function() {
     if (this.currentScene.hasNext()) {
-      this.moveTo(this.currentScene.next().id);
+      this.moveTo(this.currentScene.getNext());
     }
-  };
-
-  Manager.prototype.transition = function() {
-    this._transitions = Array.prototype.slice.call(arguments, 0);
   };
 
   Manager.prototype.of = function(filter, callback) {
@@ -396,47 +557,42 @@
     return result;
   };
 
-  Manager.prototype._run = function(from, to, skipTransition) {
+  Manager.prototype._run = function(from, to) {
     var that = this,
-        i = 0,
-        route = this._route(from, to);
+        route = this._route(from, to),
+        queues = [],
+        first;
 
-    var next = function() {
-      that._fire(route[i], route[i + 1], i < route.length - 2 ? next : end);
-      i++;
+    function end() {
+      that.isLocked = false;
+      that.currentScene = to;
+      log('trigger event transitionend');
+      that.emit('transitionend');
     };
-
-    var end = function() {
-      log('executes ' + to._ends.length + ' callback: ' + 'end ' + to.id);
-      util.runQueue(to._ends, function() {
-        that.isLocked = false;
-        that.currentScene = to;
-        log('trigger event transitionend');
-        that.emit('transitionend', to);
-      });
-    };
-
+    
     if (route.length >= 2) {
+      queues = [];
+      for (var i = 0, len = route.length - 1; i < len; i++) {
+        queues.push(this.createQueue(route[i], route[i + 1]));
+      }
+      first = queues.shift();
+      first.pipe.apply(first, queues);
       this.isLocked = true;
       log('trigger event transitionstart');
-      this.emit('transitionstart', from);
-      log('executes ' + from._starts.length + ' callback: ' + 'start ' + from.id);
-      util.runQueue(from._starts, next);
+      this.emit('transitionstart');
+      first.run(null, end);
     }
   };
 
-  Manager.prototype._fire = function(from, to, end) {
-    var that = this,
-        i = 0,
-        transitions = from._transitions[to.id];
-
-    log('executes ' + (transitions ? transitions.length : 0) + ' callback: ' + from.id + ' to ' + to.id);
-
-    if (transitions === undefined) {
-      setTimeout(end);
-    } else {
-      util.runQueue(transitions, end, to);
+  Manager.prototype.createQueue = function(from, to) {
+    var q = new Queue(),
+        transitions = from.transitions[to.id];
+    q.pass('from', from);
+    q.pass('to', to);
+    for (var i = 0, len = transitions.length; i < len; i++) {
+      q.queue(transitions[i].type, transitions[i].callback);
     }
+    return q;
   };
 
   $.nametake = function(context, options) {
@@ -447,6 +603,6 @@
 
   $.nametake.debug = false;
 
-  $.nametake.version = '0.1.0';
+  $.nametake.version = '0.2.0';
 
-}(jQuery));
+}(jQuery, this));

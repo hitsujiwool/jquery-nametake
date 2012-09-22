@@ -1,8 +1,8 @@
 $(function() {
   $.nametake.debug = true;
   var nametake = $.nametake('.pages', {
-    changeHash: false,
-    enablePreloader: false,
+    changeHash: true,
+    enablePreloader: true,
     lock: true,
     initialSceneId: '/1'
   });
@@ -18,14 +18,22 @@ $(function() {
   })();
 
   nametake
-    .on('initialize', function() {
+    .on('preinitialize', function(preloader, next) {
+      preloader.on('progress', function() {
+        console.log('progress');
+      });
+      preloader.on('complete', next);
+    });
+
+  nametake
+    .on('initialize', function(initialScene) {      
       var that = this; 
       $('.first').each(function(i, elem) {
         var $elem = $(elem);
         $elem.css('left', i * $elem.width());
       });
       $('.pages').fadeIn(function() {
-        that.moveTo(that.initialScene);     
+        that.moveTo(initialScene);
       });
     })
     .on('404', function() {
@@ -42,50 +50,50 @@ $(function() {
     })
     .of('/', function(scene) {
       scene
-        .toChild(function(to, next) {
+        .to('child', function(to, data, next) {
           $container
             .css('left', - to.index() * to.element.width())
-            .fadeIn(next);          
+            .fadeIn(next);
         });
     })
     .of(/^\/[^/]+$/, function(scene) {
       scene
-        .toSibling(function(to, next) {
+        .to('sibling', function(to, data, next) {
           $container.animate({'left': - to.index() * scene.element.width()}, next);
         })
-        .toChild(function(to, next) {
+        .to('child', function(to, data, next) {
           scene.element.animate({'top': - (to.index() + 1) * $container.height()}, next);
-          //to.element.fadeIn(next);
         })
-        .end(function(next) {
+        .from('any', function(from, data, next) {
           next();
         });
     })
     .of(/^\/[^/]+\/[^/]$/, function(scene) {
       scene
-        .toParent(function(to, next) {
+        .to('parent', function(to, data, next) {
           to.element.animate({top : 0}, next);
         })
-        .toSibling(function(to, next) {
+        .to('sibling', function(to, data, next) {
           to.parent.element.animate({top: - (to.index() + 1) * $container.height()}, next);
         });
     })
     .of('/1/2/1', function(scene) {
       scene
-        .start(function(next) {
+        .to('any', function(to, data, next) {
           scene.element.animate({left: '-=' + scene.element.width()}, next);
         })
-        .end(function(next) {
+        .from('any', function(from, data, next) {
           scene.element.animate({left: '+=' + scene.element.width()}, next);
         });      
     })
     .of('/1/2/2', function(scene) {
       scene
-        .start(function(next) {
+        .to('any', function(to, data, next) {
           scene.element.animate({right: '-=' + scene.element.width()}, next);
         })
-        .end(function(next) {
+        .from('any', function(from, data, next) {
           scene.element.animate({right: '+=' + scene.element.width()}, next);
         });      
     });
+
 });

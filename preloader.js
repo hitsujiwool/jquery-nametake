@@ -92,11 +92,14 @@
     
     progressLoop = setInterval(function() {
       pseudoCounter++;
-      that.emit('progress');
+      that.emit('progress', that.getProportion());
       if (pseudoCounter >= Math.floor(params.pseudoWait / params.progressInterval)) {
         pseudoRunning = false;
         if (numImages === counter) {
           clearTimeout(progressLoop);
+          if (that.getProportion() !== 1) {
+            that.emit('progress', 1);
+          }
           that.emit('complete');
         }
       }
@@ -108,7 +111,7 @@
         //IE7以下だとonloadが非同期で動かない？？　念のためsetTimeoutで囲む
         setTimeout(function() {
           counter++;
-          that.emit('progress');
+          that.emit('progress', that.getProportion());
           that.emit(e.type);
           if (numImages === counter && !pseudoRunning) {
             clearTimeout(progressLoop);
@@ -128,8 +131,8 @@
     return counter;
   };
 
-  Preloader.prototype.getProportion = function(pseudo) {
-    return Math.min((pseudoCounter + 1) * params.progressInterval / params.pseudoWait, counter / numImages);
+  Preloader.prototype.getProportion = function() {
+    return Math.min((pseudoCounter) * params.progressInterval / params.pseudoWait, counter / numImages);
   };
 
   Preloader.init = function(callback, options) {

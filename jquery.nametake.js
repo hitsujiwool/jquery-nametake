@@ -84,6 +84,7 @@
     this.manager = manager;
     this.id = id;
     this.transitions = {};
+    this.title = title;
   };
 
   // inherit EventEmitter
@@ -455,7 +456,9 @@
   };
 
   Manager.prototype._moveTo = function(scene) {
-    document.title = scene.title || '';
+    if (scene.title) {
+      document.title = scene.title;
+    }
     this._run(this.currentScene, scene);
   };
 
@@ -510,7 +513,11 @@
       nodes = elem.childNodes;
       for (i = 0, len = nodes.length; i < len; i++) {
         if (nodes[i].nodeType === 1 && nodes[i].getAttribute('data-nametake-id')) {
-          scene = new Scene(this, nodes[i], parent.id + (parent.id === '/' ? '' : '/') + nodes[i].getAttribute('data-nametake-id'));
+          scene = new Scene(this,
+                            nodes[i],
+                            parent.id + (parent.id === '/' ? '' : '/') + nodes[i].getAttribute('data-nametake-id'),
+                            nodes[i].getAttribute('data-nametake-title')
+                           );
           if (typeof callback === 'function') callback(scene);
           scene.parent = parent;
           parent.addScene(this._parseScene(nodes[i], callback, scene));

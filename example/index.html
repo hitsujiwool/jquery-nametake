@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <title>nametake</title>
+    <link rel="stylesheet" href="./stylesheets/style.css"/>
+  </head>
+  <body>
+    <div id="content">
+      <div class="map">
+        <div class="inner">
+          <span>root</span>
+          <ul class="top">
+            <li>
+              <a href="./#!/1">/1</a>
+              <ul>
+                <li>
+                  <a href="./#!/1/1">/1/1</a>
+                </li><!--
+             --><li>
+                  <a href="./#!/1/2">/1/2</a>
+                </li>
+              </ul>
+            </li><!--
+         --><li>
+              <a href="./#!/2">/2</a>
+              <ul>
+                <li><a href="./#!/2/1">/2/1</a></li><!--
+             --><li><a href="./#!/2/2">/2/2</a></li>
+              </ul>
+            </li><!--
+         --><li><a href="./#!/3" class="last">/3</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="frame">
+        <div class="overlay">
+          <div class="bar"></div>
+        </div>
+        <div class="pages">
+          <div class="navigation"></div>
+          <div class="container">
+            <div class="first" data-nametake-id="1" data-nametake-title="sheep!">
+              <p><img src="images/sample1.jpg" width="320" height="320"/></p>
+              <div class="second" data-nametake-id="1" data-nametake-title="sheep!">
+                <p><img src="images/sample2.jpg" width="320" height="320"/></p>
+              </div>
+              <div class="second" data-nametake-id="2" data-nametake-title="sheep!">
+                <p><img src="images/sample3.jpg" width="320" height="320"/></p>
+                <div class="third left" data-nametake-id="1">
+                  <h4>Page 1-2-1</h4>
+                </div>
+                <div class="third right" data-nametake-id="2">              
+                  <h4>Page 1-2-2</h4>
+                </div>
+              </div>
+            </div>
+            <div class="first" data-nametake-id="2" data-nametake-title="food!">
+              <p><img src="images/sample4.jpg" width="320" height="320"/></p>
+              <div class="second" data-nametake-id="1" data-nametake-title="food!">
+                <p><img src="images/sample5.jpg" width="320" height="320"/></p>
+              </div>
+              <div class="second" data-nametake-id="2" data-nametake-title="food!">
+                <p><img src="images/sample6.jpg" width="320" height="320"/></p>
+                <h3>Page 2-2</h3>
+              </div>
+            </div>
+            <div class="first" data-nametake-id="3" data-nametake-title="cat!">
+              <p><img src="images/sample7.jpg" width="320" height="320"/></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="../jquery.nametake.js"></script>
+    <script src="../preloader.js"></script>
+    <script src="./javascripts/site.js"></script>
+  </body>
+</html>

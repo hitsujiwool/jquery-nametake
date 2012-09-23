@@ -6,14 +6,13 @@
   list-style-position: inside;
 }
 
-p {
-  line-height: 150%;
+body {
+  color: #333333;
 }
 
 #content {
   margin: 0 auto;
-  padding-top: 50px;
-  width: 800px;
+  width: 960px;
 }
 
 #navigation {
@@ -22,25 +21,21 @@ p {
   float: left;
 }
 
-.caption {
-  margin: 8px 0 10px 0;
-}
-
 .map {
-  width: 727px;
+  width: 602px;
   margin: 0 auto;
+  padding: 20px 0;
   text-align: center;
   position: relative;
 }
 
 .map .inner {
-  border: 1px solid #444444;
-  box-shadow: 5px 5px 5px #DDDDDD;
+  border: 1px solid #AAAAAA;
   padding: 10px;
 }
 
 .map a, .map span {
-  margin: 0 30px 10px 30px;
+  margin: 0 5px 10px 5px;
   padding: 10px 0 10px 0;
   background-color: #EEEEEE;
   display: inline-block;
@@ -78,10 +73,6 @@ p {
   margin-left: 0;
 }
 
-.map .tight {
-  margin: 0 5px 10px 5px;
-}
-
 .map .last {
   margin-right: 60px;
 }
@@ -90,21 +81,44 @@ p {
   margin-bottom: 0;
 }
 
+.frame {
+  margin: 0 auto;
+  border: 1px solid #AAAAAA;  
+  width: 600px;
+  height: 400px;
+  position: relative;
+}
+
+.overlay {
+  position: relative;
+  height: 100%;
+  z-index: 999;
+  background-color: #FFFFFF;
+}
+
+.overlay .bar {
+  margin-top: -5px;
+  height: 10px;
+  position: absolute;
+  top: 50%;  
+  background-color: #333333;
+}
+
 .pages {
   margin: 0 auto;
-  border: 1px solid #DDDDDD;
-  width: 600px;  height: 400px;
-  position: relative;
+  position: absolute;
+  top: 0;
+  width: 600px;
+  height: 400px;
   overflow: hidden;
-  display: none;
 }
 
 .navigation {
-  width: 600px;
+  width: 900px;
   height: 30px;
   position: absolute;
   top: -30px;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: #333333;
   z-index: 1;
 }
 
@@ -118,7 +132,13 @@ p {
 .container {
   position: relative;
   height: 100%;
-  display: none;
+}
+
+.container p {
+  height: 340px;
+  padding-top: 60px;
+  text-align: center;
+  font-size: 0;
 }
 
 .first {
@@ -126,43 +146,8 @@ p {
   width: 600px;
 }
 
-.first h2 {
-  height: 400px;
-  line-height: 400px;
-  text-align: center;
-}
-
 .second {
   width: 600px;
   height: 400px;
-  background-color: rgba(200, 200, 200, 0.4);
   position: relative;
-}
-
-.second h3 {
-  height: 400px;
-  line-height: 400px;
-  text-align: center;
-}
-
-.left {
-  left: -100px;
-}
-
-.right {
-  right: -100px;
-}
-
-.pages .third {
-  width: 100px;
-  height: 300px;
-  position: absolute;
-  top: 50px;
-  background-color: rgba(255, 0, 0, 0.4);
-}
-
-.pages .third h4 {
-  height: 300px;
-  line-height: 300px;
-  text-align: center;
 }

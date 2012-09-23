@@ -1,19 +1,23 @@
-(function(exports) {
 
-  var total
-    , counter = 0
-    , files
-    , nowWaiting = true
-    , pseudoCounter = 0;
+;(function(exports) {
+  
+  var files,      
+      numImages,
+      counter = 0,
+      pseudoCounter = 0,
+      pseudoRunning = true;
+
 
   var params = {
     progressInterval: 50,
     pseudoWait: 1000
   };
 
-  /*
-   * EventEmitter from move.js
+  /**
+   * EventEmitter Pattern from move.js written by visionmedia
+   * https://github.com/visionmedia/move.js/blob/master/move.js
    */
+
   var EventEmitter = function() {
     this.callbacks = {};
   };
@@ -24,9 +28,9 @@
   };
 
   EventEmitter.prototype.emit = function(event) {
-    var args = Array.prototype.slice.call(arguments, 1)
-      , callbacks = this.callbacks[event]
-      , len;
+    var args = Array.prototype.slice.call(arguments, 1),
+        callbacks = this.callbacks[event],
+        len;
     if (callbacks) {
       len = callbacks.length;
       for (var i = 0; i < len; ++i) {
@@ -37,113 +41,110 @@
   };
 
   var extractImageFiles = function(elem) {
-    var result = []
-      , style
-      , val;
-    (function(elem) {
-      var nodes
-        , node
-        , i
-        , len;
+    var result = [],
+        style,
+        val;
+
+    function iter(elem) {
+      var nodes,
+          node;
       if (elem.hasChildNodes()) {
         nodes = elem.childNodes;
-        for (i = 0, len = nodes.length; i < len; i++) {
+        for (var i = 0, len = nodes.length; i < len; i++) {
           node = nodes[i];
           if (node.nodeType === 1) {
             if (node.tagName !== undefined) {
               style = node.currentStyle || getComputedStyle(node, '');
               val = (style ? (style.getPropertyValue ? style.getPropertyValue('background-image') : style.backgroundImage) : null);
-              //if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
+              if (val && val !== 'none') result.push(val.replace(/^url\(['"]?(.+?)['"]?\)$/, '$1'));
             }
             if (node.src && node.tagName === 'IMG') {
               result.push(node.src);
             }
-            arguments.callee(node);
+            iter(node);
           }
         }
       }
-    })(elem);
+    }
+
+    iter(elem);
+
     return result;
   };
 
-  var Preloader = function() {
-    var that = this
-      , i
-      , len
-      , progressLoop;
-
+  function Preloader() {
     EventEmitter.call(this);
+  };
+
+  Preloader.prototype = new EventEmitter();
+  
+  Preloader.prototype.setup = function() {
+    var that = this,
+        progressLoop;
+    
     files = extractImageFiles(document.body);
+    numImages = files.length;
+
     if (files.length === 0) {
-      setTimeout(function() { that.emit('complete'); }, 0);
+      setTimeout(function() { that.emit('complete'); });
       return;
     }
-    total = files.length;
+    
     progressLoop = setInterval(function() {
       pseudoCounter++;
-      that.emit('progress');
-      if (pseudoCounter > Math.floor(params.pseudoWait / params.progressInterval)) {
-        nowWaiting = false;
-        if (total === counter) {
+      that.emit('progress', that.getProportion());
+      if (pseudoCounter >= Math.floor(params.pseudoWait / params.progressInterval)) {
+        pseudoRunning = false;
+        if (numImages === counter) {
           clearTimeout(progressLoop);
+          if (that.getProportion() !== 1) {
+            that.emit('progress', 1);
+          }
           that.emit('complete');
         }
       }
     }, params.progressInterval);
 
-    for (i = 0, len = files.length; i < len; i++) {
+    for (var i = 0, len = files.length; i < len; i++) {
       var image = new Image();
-      //IE7以下だとonloadが非同期で動かない？？
       image.onload = image.onerror = image.onabort = function(e) {
+        //IE7以下だとonloadが非同期で動かない？？　念のためsetTimeoutで囲む
         setTimeout(function() {
           counter++;
+          that.emit('progress', that.getProportion());
           that.emit(e.type);
-          if (total === counter && !nowWaiting) {
+          if (numImages === counter && !pseudoRunning) {
             clearTimeout(progressLoop);
-            that.emit('progress');
             that.emit('complete');
           }
-        }, 0);
+        });
       };
       image.src = files[i];
     }
   };
-  Preloader.prototype = new EventEmitter();
 
   Preloader.prototype.getTotal = function() {
-    return total;
+    return numImages;
   };
 
   Preloader.prototype.getLoaded = function() {
     return counter;
   };
 
-  Preloader.prototype.getProportion = function(pseudo) {
-    if (pseudo === undefined) pseudo = true;
-    if (pseudo) {
-      return Math.min((pseudoCounter + 1) * params.progressInterval / params.pseudoWait, counter / total);
-    } else {
-      return counter / total;
-    }
-  };
-
-  Preloader.prototype.incLoaded = function() {
-    counter++;
-  };
-
-  Preloader.prototype.incTotal = function() {
-    total++;
+  Preloader.prototype.getProportion = function() {
+    return Math.min((pseudoCounter) * params.progressInterval / params.pseudoWait, counter / numImages);
   };
 
   Preloader.init = function(callback, options) {
-    var key;
     options = options || {};
-    for (key in options) {
+    for (var key in options) {
       if (key in params) params[key] = options[key];
     }
     var preloader = new Preloader();
     callback(preloader);
+    preloader.setup();
   };
 
   exports.Preloader = Preloader;
-})(window);
+
+})(this);

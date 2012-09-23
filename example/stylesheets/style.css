@@ -12,7 +12,6 @@ body {
 
 #content {
   margin: 0 auto;
-  padding-top: 20px;
   width: 960px;
 }
 
@@ -22,13 +21,10 @@ body {
   float: left;
 }
 
-.caption {
-  margin: 8px 0 10px 0;
-}
-
 .map {
-  width: 600px;
+  width: 602px;
   margin: 0 auto;
+  padding: 20px 0;
   text-align: center;
   position: relative;
 }
@@ -77,10 +73,6 @@ body {
   margin-left: 0;
 }
 
-.map .tight {
-  margin: 0 5px 10px 5px;
-}
-
 .map .last {
   margin-right: 60px;
 }
@@ -121,13 +113,6 @@ body {
   overflow: hidden;
 }
 
-.container p {
-  height: 340px;
-  padding-top: 60px;
-  text-align: center;
-  font-size: 0;
-}
-
 .navigation {
   width: 900px;
   height: 30px;
@@ -147,6 +132,13 @@ body {
 .container {
   position: relative;
   height: 100%;
+}
+
+.container p {
+  height: 340px;
+  padding-top: 60px;
+  text-align: center;
+  font-size: 0;
 }
 
 .first {

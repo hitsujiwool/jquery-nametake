@@ -140,7 +140,7 @@
 
   Scene.prototype.toSibling = function(callback) {
     var that = this;
-    $.each(this.manager._getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
+    $.each(this.manager.getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
       (that.transitions[scene.id] = that.transitions[scene.id] || []).push({ type: 'to', callback: callback });
     });
     return this;
@@ -191,7 +191,7 @@
 
   Scene.prototype.fromSibling = function(callback) {
     var that = this;
-    $.each(this.manager._getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
+    $.each(this.manager.getScenes(function(scene) { return scene.isSiblingOf(that); }), function(i, scene) {
       (scene.transitions[that.id] = scene.transitions[that.id] || []).push({ type: 'from', callback: callback });
     });
     return this;
@@ -379,7 +379,7 @@
         initialScene;
 
     EventEmitter.call(this);
-    scenes['/'] = this.root = this._parseScene($root.get(0), function(scene) {
+    scenes['/'] = this.root = this.parseScene($root.get(0), function(scene) {
       if (scenes[scene.id]) {
         throw new Error('Scene [' + scene.id + '] already exists!');
       } else {
@@ -387,11 +387,11 @@
       }
     });
 
-    this._scenes = scenes;
+    this.scenes = scenes;
 
-    initialScene = params.initialSceneId ? this._getScene(params.initialSceneId) : this.root.children[0];
+    initialScene = params.initialSceneId ? this.getScene(params.initialSceneId) : this.root.children[0];
     if (params.changeHash && location.hash) {
-      initialScene = this._getScene(location.hash.split('#!')[1]);
+      initialScene = this.getScene(location.hash.split('#!')[1]);
     }
 
     if (params.enablePreloader) {
@@ -414,15 +414,15 @@
     });
 
     $(window).bind('hashchange', function(e) {
-      var scene;
+      var to;
       e.preventDefault();
       if (location.hash.indexOf('#!') > -1) {
-        scene = that._getScene(location.hash.split('#!')[1]);
-        if (scene === undefined) {
+        to = that.getScene(location.hash.split('#!')[1]);
+        if (to === undefined) {
           that.emit('404');
           return;
         } else {
-          that._moveTo(scene);
+          that.run(that.currentScene, to);
         }
       }
     });
@@ -434,7 +434,7 @@
   Manager.prototype = new EventEmitter();
 
   Manager.prototype.moveTo = function(target) {
-    var to = target instanceof Scene ? target : this._getScene(target);
+    var to = target instanceof Scene ? target : this.getScene(target);
     if (to === undefined) {
       this.emit('404');
       return;
@@ -451,15 +451,8 @@
         location.hash = '!' + to.id;
       }
     } else {
-      this._moveTo(to);
+      this.run(this.currentScene, to);
     }
-  };
-
-  Manager.prototype._moveTo = function(scene) {
-    if (scene.title) {
-      document.title = scene.title;
-    }
-    this._run(this.currentScene, scene);
   };
 
   Manager.prototype.moveToPrev = function() {
@@ -476,22 +469,22 @@
 
   Manager.prototype.of = function(filter, callback) {
     if (typeof filter === 'string') {
-      callback(this._getScene(filter));
+      callback(this.getScene(filter));
     } else if (filter instanceof RegExp) {
-      $.each(this._getScenes(filter), function(i, scene) {
+      $.each(this.getScenes(filter), function(i, scene) {
         callback(scene);
       });
     }
     return this;
   };
 
-  Manager.prototype._getScene = function(sceneId) {
-    return this._scenes[sceneId];
+  Manager.prototype.getScene = function(sceneId) {
+    return this.scenes[sceneId];
   };
 
-  Manager.prototype._getScenes = function(filter) {
+  Manager.prototype.getScenes = function(filter) {
     var result = [];
-    $.each(this._scenes, function(id, scene) {
+    $.each(this.scenes, function(id, scene) {
       if (filter === null) {
         result.push(scene);
       } else if (filter instanceof RegExp && filter.test(id)) {
@@ -503,7 +496,7 @@
     return result;
   };
 
-  Manager.prototype._parseScene = function(elem, callback, parent) {
+  Manager.prototype.parseScene = function(elem, callback, parent) {
     var i,
         nodes,
         len,
@@ -520,16 +513,16 @@
                            );
           if (typeof callback === 'function') callback(scene);
           scene.parent = parent;
-          parent.addScene(this._parseScene(nodes[i], callback, scene));
+          parent.addScene(this.parseScene(nodes[i], callback, scene));
         } else {
-          parent = this._parseScene(nodes[i], callback, parent);
+          parent = this.parseScene(nodes[i], callback, parent);
         }
       }
     }
     return parent;
   };
 
-  Manager.prototype._route = function(from, to) {
+  Manager.prototype.route = function(from, to) {
     var that = this,
         scene,
         result = [];
@@ -541,7 +534,7 @@
       } else if (to.isDescendantOf(from)) {
         sceneId = to.id;
         while (sceneId !== from.id) {
-          tmp.unshift(that._getScene(sceneId));
+          tmp.unshift(that.getScene(sceneId));
           sceneId = sceneId.slice(0, sceneId.lastIndexOf('/')) || '/';
         }
         tmp.unshift(from);
@@ -564,15 +557,18 @@
     return result;
   };
 
-  Manager.prototype._run = function(from, to) {
+  Manager.prototype.run = function(from, to) {
     var that = this,
-        route = this._route(from, to),
+        route = this.route(from, to),
         queues = [],
         first;
 
     function end() {
       that.isLocked = false;
       that.currentScene = to;
+      if (to.title) {
+        document.title = to.title;
+      }
       log('trigger event transitionend');
       that.emit('transitionend');
     };

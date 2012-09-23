@@ -77,7 +77,7 @@ manager.of(/^\/foo\/.*$/, function(scene) {
   
   // wildcard
   scene.to('any', function(to, data, next) {
-    console.log('do something when'
+    console.log('do something');
   });
   
   // transition from its sibling scene

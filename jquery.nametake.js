@@ -5,7 +5,14 @@
  * MIT Licensed
  */
 
-(function($) {
+;(function($) {
+
+  // default parameters
+  var params = {
+    lock: true,
+    changeHash: false,
+    enablePreloader: false
+  };
 
   /**
    * Utility functions
@@ -24,30 +31,7 @@
         }
         return -1;
       }
-    },
-    logger: function(enabled) {
-      if (enabled) {
-        if (!window.console) {
-          window.console = {
-            log: function() {}
-          };
-        };
-        return function(msg) {
-          console.log(msg);
-        };
-      } else {
-        return function(msg) {};
-      }
     }
-  };
-
-  var log;
-  
-  var params = {
-    lock: true,
-    changeTitle: false,
-    changeHash: false,
-    enablePreloader: false
   };
 
   /**
@@ -90,9 +74,17 @@
   // inherit EventEmitter
   Scene.prototype = new EventEmitter();
 
+  /**
+   * Add child scene.
+   * 
+   * @param {Scene} scene
+   * @return {Scene}
+   */
+
   Scene.prototype.addScene = function(scene) {
     this.children.push(scene);
     this.numChildren = this.children.length;
+    return this;
   };
 
   /**
@@ -288,7 +280,8 @@
    * Assign what arguments to be passed.
    * 
    * @param {String} type
-   * @param {...Mixed} args
+   * @param {Mixed...} args
+   * @return {Queue}
    */
 
   Queue.prototype.pass = function(type) {    
@@ -304,6 +297,7 @@
    * Queue callback.
    * 
    * @param {Function} callback
+   * @return {Queue}
    */
 
   Queue.prototype.queue = function(type, callback) {
@@ -334,7 +328,9 @@
   /**
    * Execute callback sequentially
    * 
+   * @param {Mixed} initialVal
    * @param {Function} end
+   * @return {Queue}
    */
 
   Queue.prototype.run = function(initialVal, end) {
@@ -379,6 +375,7 @@
         initialScene;
 
     EventEmitter.call(this);
+
     scenes['/'] = this.root = this.parseScene($root.get(0), function(scene) {
       if (scenes[scene.id]) {
         throw new Error('Scene [' + scene.id + '] already exists!');
@@ -406,6 +403,7 @@
       setTimeout(function() { this.emit('initialize', initialScene); });
     }
 
+    // autolink
     $('a').live('click', function(e) {
       if (this.href.indexOf('#!') > -1) {
         e.preventDefault();
@@ -431,7 +429,14 @@
     this.currentScene = this.root;
   };
 
+  // inherit EventEmitter
   Manager.prototype = new EventEmitter();
+
+  /**
+   * Move to another scene.
+   * 
+   * @param {Mixed} target
+   */
 
   Manager.prototype.moveTo = function(target) {
     var to = target instanceof Scene ? target : this.getScene(target);
@@ -455,17 +460,33 @@
     }
   };
 
+  /**
+   * Move to previous scene if exists.
+   */
+
   Manager.prototype.moveToPrev = function() {
     if (this.currentScene.hasPrev()) {
       this.moveTo(this.currentScene.getPrev());
     }
   };
 
+  /**
+   * Move to next scene if exists.
+   */
+
   Manager.prototype.moveToNext = function() {
     if (this.currentScene.hasNext()) {
       this.moveTo(this.currentScene.getNext());
     }
   };
+
+  /**
+   * Return a scene which matchs to filter expression.
+   * 
+   * @param {Mixed} filter
+   * @param {Function} callback
+   * @return {Manager}
+   */
 
   Manager.prototype.of = function(filter, callback) {
     if (typeof filter === 'string') {
@@ -478,9 +499,23 @@
     return this;
   };
 
+  /**
+   * Get a scene by its ID.
+   * 
+   * @param {String} sceneId
+   * @return {Scene}
+   */
+
   Manager.prototype.getScene = function(sceneId) {
     return this.scenes[sceneId];
   };
+
+  /**
+   * Get scenes by filtering function.
+   * 
+   * @param {Function} filter
+   * @return {Scene}
+   */
 
   Manager.prototype.getScenes = function(filter) {
     var result = [];
@@ -495,6 +530,15 @@
     });
     return result;
   };
+
+  /**
+   * Parse DOM Element and create scene tree.
+   * 
+   * @param {DOMElement} elem
+   * @param {Function} callback
+   * @param {Scene} parent
+   * @return {Scene}
+   */
 
   Manager.prototype.parseScene = function(elem, callback, parent) {
     var i,
@@ -521,6 +565,14 @@
     }
     return parent;
   };
+
+  /**
+   * Calculate a route between two scenes.
+   * 
+   * @param {Scene} from
+   * @param {Scene} to
+   * @return {Array}
+   */
 
   Manager.prototype.route = function(from, to) {
     var that = this,
@@ -557,6 +609,13 @@
     return result;
   };
 
+  /**
+   * Execute transition callbacks.
+   * 
+   * @param {Scene} from
+   * @param {Scene} to
+   */
+
   Manager.prototype.run = function(from, to) {
     var that = this,
         route = this.route(from, to),
@@ -569,7 +628,6 @@
       if (to.title) {
         document.title = to.title;
       }
-      log('trigger event transitionend');
       that.emit('transitionend');
     };
     
@@ -581,11 +639,18 @@
       first = queues.shift();
       first.pipe.apply(first, queues);
       this.isLocked = true;
-      log('trigger event transitionstart');
       this.emit('transitionstart');
       first.run(null, end);
     }
   };
+
+  /**
+   * Create a transition queue between from and to.
+   * 
+   * @param {Scene} from
+   * @param {Scene} to
+   * @return {Queue}
+   */
 
   Manager.prototype.createQueue = function(from, to) {
     var q = new Queue(),
@@ -598,13 +663,11 @@
     return q;
   };
 
+  // jQuery interface
   $.nametake = function(context, options) {
-    params = $.extend(params, options);
-    log = util.logger(arguments.callee.debug);
+    params = $.extend({}, params, options);
     return new Manager($(context));
   };
-
-  $.nametake.debug = false;
 
   $.nametake.version = '0.2.0';
 

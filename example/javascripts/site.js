@@ -1,7 +1,5 @@
 $(function() {
 
-  $.nametake.debug = true;
-
   var manager = $.nametake('.pages', {
     changeHash: true,
     enablePreloader: true,

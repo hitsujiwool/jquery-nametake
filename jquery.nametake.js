@@ -400,7 +400,7 @@
         });
       });
     } else {
-      setTimeout(function() { this.emit('initialize', initialScene); });
+      setTimeout(function() { that.emit('initialize', initialScene); });
     }
 
     // autolink
